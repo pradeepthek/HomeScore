@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HomeScore</title>
+<meta name="description" content="HomeScore bewertet Wohnlagen in der Schweiz nach Ihren eigenen Prioritäten: Steuerfuss, Bahnhof, Einkauf, Autobahn, Schulen und Reisezeiten.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="css/style.css?v=2026-10-21k">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap masthead-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">HomeScore</span>
+    </div>
+    <p class="tagline">Wohnlagen in der Schweiz nach Ihren Prioritäten bewerten</p>
+  </div>
+</header>
+
+<main class="wrap layout">
+  <!-- Linke Spalte: Eingabe und Prioritäten -->
+  <section class="panel" aria-labelledby="h-objekt">
+    <h2 id="h-objekt">Objekt prüfen</h2>
+    <form id="lookup-form" autocomplete="off" novalidate>
+      <label for="q" class="field-label">Adresse oder Gemeinde</label>
+      <div class="search">
+        <input id="q" type="text" placeholder="z.B. Bahnhofstrasse 10, 8400 Winterthur" aria-autocomplete="list" aria-controls="suggest" required>
+        <ul id="suggest" class="suggest" role="listbox" hidden></ul>
+      </div>
+      <div>
+        <label for="kaufpreis" class="field-label">Kaufpreis (CHF)</label>
+        <input id="kaufpreis" type="number" inputmode="numeric" min="0" step="1000" placeholder="z.B. 1250000">
+      </div>
+      <div class="row-2">
+        <div>
+          <label for="zimmer" class="field-label">Zimmer</label>
+          <input id="zimmer" type="number" inputmode="decimal" min="0" step="0.5" placeholder="z.B. 4.5">
+        </div>
+        <div>
+          <label for="flaeche" class="field-label">Wohnfläche (m²)</label>
+          <input id="flaeche" type="number" inputmode="numeric" min="0" step="1" placeholder="z.B. 125">
+        </div>
+      </div>
+      <button id="btn-lookup" type="submit" class="btn-primary">Daten abrufen und hinzufügen</button>
+      <p class="hint">Fehlt die genaue Adresse, genügt der Gemeindename. Distanzen werden dann ab dem Gemeindezentrum gemessen.</p>
+    </form>
+    <ol id="progress" class="progress" hidden></ol>
+    <p id="form-error" class="error" role="alert" hidden></p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-prio">
+    <h2 id="h-prio">Ihre Prioritäten</h2>
+    <p class="hint">0 = egal, 5 = sehr wichtig. Setzen Sie nur wenige Kriterien auf 5, damit der Score Ihre Prioritäten klar abbildet. Das Muss-Kriterium ist ein Höchstwert: Objekte darüber werden markiert.</p>
+    <div class="wish">
+      <label for="wunschpreis" class="field-label">Gewünschter Kaufpreis (CHF)</label>
+      <input id="wunschpreis" type="number" inputmode="numeric" min="0" step="10000" placeholder="z.B. 1100000">
+      <p class="hint">Genau zum Wunschpreis gibt es 7.5 von 10 Punkten. Günstiger gibt mehr (−10 % = 8.75, ab −20 % volle 10), teurer weniger (+10 % = 3.75, ab +20 % = 0).</p>
+    </div>
+    <div id="prio-table" class="prio-table"></div>
+
+    <h3 class="sub">Arbeitsort</h3>
+    <p class="hint">Bis zu drei Personen. Jeder Arbeitsort wird ein eigenes Kriterium mit Zug- und Autozeit.</p>
+    <div id="work-list" class="work-list"></div>
+
+    <h3 class="sub">Reisezeit zu</h3>
+    <p class="hint">Wählen Sie die Ziele, die für Sie zählen. Jedes Ziel erhält eine eigene Gewichtung. Pro Ziel wählen Sie, ob die Zug- oder Autozeit zählt oder die schnellere von beiden.</p>
+    <div id="dest-chips" class="chips" role="group" aria-label="Ziele"></div>
+    <button id="btn-reset" type="button" class="btn-ghost">Prioritäten zurücksetzen</button>
+  </section>
+
+  <!-- Rechte Spalte: Resultate -->
+  <section class="results" aria-labelledby="h-res">
+    <div class="results-head">
+      <h2 id="h-res">Rangliste</h2>
+      <button id="btn-clear" type="button" class="btn-ghost" hidden>Alle Objekte entfernen</button>
+    </div>
+    <div id="bulk" class="bulk" role="region" aria-label="Auswahl" aria-live="polite" hidden></div>
+    <p id="maps-hint" class="hint maps-hint" hidden>Tipp: Klicken Sie auf ein Kriterium, um die Route ab der Adresse in Google Maps zu öffnen. <span class="legend"><i aria-hidden="true"></i> Blau = von Hand eingetragen, nicht automatisch abgerufen.</span></p>
+    <p id="canton-warn" class="warn" hidden></p>
+    <div id="results"></div>
+  </section>
+</main>
+
+<main id="compare" class="wrap compare" hidden aria-labelledby="h-cmp">
+  <div class="cmp-top">
+    <button id="compare-back" type="button" class="btn-ghost">← Zurück zur Rangliste</button>
+    <h2 id="h-cmp">Vergleich</h2>
+  </div>
+  <div id="compare-body"></div>
+</main>
+
+<footer class="wrap foot">
+  <p>Datenquellen: ESTV Steuerrechner (Steuerfüsse 2026), geo.admin.ch (Adressen, Gemeinden), © OpenStreetMap-Mitwirkende (Bahnhöfe, Geschäfte, Schulen, Autobahnanschlüsse), FOSSGIS OSRM (Routen), transport.opendata.ch (Fahrplan). Alle Angaben ohne Gewähr.</p>
+</footer>
+
+<script src="data/steuerfuesse.js?v=2026"></script>
+<script src="js/app.js?v=2026-10-21k"></script>
+</body>
+</html>
