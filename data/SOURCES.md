@@ -37,8 +37,21 @@ Steuerfüsse sind nur innerhalb desselben Kantons vergleichbar, da jeder Kanton 
 | Daten | Dienst | URL |
 |---|---|---|
 | Adresssuche, Gemeinde | geo.admin.ch (swisstopo) | https://api3.geo.admin.ch |
-| Bahnhof, Lebensmittelgeschäft, Autobahnanschluss, Schule, Kindergarten | OpenStreetMap über Overpass API | https://overpass-api.de |
+| Lebensmittelgeschäft, Autobahnanschluss, Schule, Kindergarten (Bahnhof nur als Ersatz) | OpenStreetMap über Overpass API: overpass-api.de (FOSSGIS, DE), Ersatz overpass.private.coffee. overpass.osm.ch (Schweiz) vorbereitet, aber ausgeschaltet bis zur Zustimmung des Betreibers | https://overpass-api.de |
 | Fuss- und Autorouten | FOSSGIS OSRM | https://routing.openstreetmap.de |
 | Reisezeiten Zug | transport.opendata.ch | https://transport.opendata.ch |
 
 Pflicht zur Quellenangabe: «© OpenStreetMap-Mitwirkende» (steht im Seitenfuss).
+
+## Einkaufszentren (`einkaufszentren.json`, `einkaufszentren.js`)
+
+| Feld | Wert |
+|---|---|
+| Liste | Wikipedia: Liste der Einkaufszentren mit den grössten Verkaufsflächen der Schweiz (25 Einträge) |
+| URL | https://de.wikipedia.org/wiki/Liste_der_Einkaufszentren_mit_den_gr%C3%B6ssten_Verkaufsfl%C3%A4chen_der_Schweiz |
+| Koordinaten | OpenStreetMap, Objekte mit shop=mall (Typ und ID im Feld «osm»), abgefragt über overpass.osm.ch, Rohdaten: `raw/osm_shop_mall_ch_2026-10-23.csv`. 24 von 25 eindeutig zugeordnet; Shoppi Tivoli besteht aus zwei Gebäuden («Shoppi», «Tivoli»), Koordinate = Mittelpunkt. Ausnahme Gäupark (Egerkingen): in OpenStreetMap nicht als shop=mall erfasst, Koordinaten aus dem amtlichen Gebäudeadressverzeichnis (geo.admin.ch, Hausimollstrasse 1, 4622 Egerkingen). |
+| Stand | 2026-10-23 |
+| Aktualisierung | bei Bedarf; die Wikipedia-Liste ändert sich selten |
+
+## Haltestelle öV
+Live über transport.opendata.ch: nächste Haltestelle jeder Art (Bus, Tram, Zug, Schiff), Fussweg bzw. Autoroute über FOSSGIS OSRM.

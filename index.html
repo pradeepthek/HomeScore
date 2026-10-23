@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HomeScore</title>
-<meta name="description" content="HomeScore bewertet Wohnlagen in der Schweiz nach Ihren eigenen Prioritäten: Steuerfuss, Bahnhof, Einkauf, Autobahn, Schulen und Reisezeiten.">
+<meta name="description" data-i18n-content="HomeScore bewertet Wohnlagen in der Schweiz nach Ihren eigenen Prioritäten: Steuerfuss, Bahnhof, Einkauf, Autobahn, Schulen und Reisezeiten." content="HomeScore bewertet Wohnlagen in der Schweiz nach Ihren eigenen Prioritäten: Steuerfuss, Bahnhof, Einkauf, Autobahn, Schulen und Reisezeiten.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
-<link rel="stylesheet" href="css/style.css?v=2026-10-21k">
+<link rel="stylesheet" href="css/style.css?v=2026-10-24g">
 </head>
 <body>
 <header class="masthead">
@@ -17,87 +17,122 @@
       <span class="brand-mark" aria-hidden="true"></span>
       <span class="brand-name">HomeScore</span>
     </div>
-    <p class="tagline">Wohnlagen in der Schweiz nach Ihren Prioritäten bewerten</p>
+    <p class="tagline" data-i18n="Wohnlagen in der Schweiz nach Ihren Prioritäten bewerten">Wohnlagen in der Schweiz nach Ihren Prioritäten bewerten</p>
+    <nav class="lang" aria-label="Sprache / Language / Langue / Lingua">
+      <button type="button" data-lang="de" lang="de" title="Deutsch">DE</button>
+      <button type="button" data-lang="en" lang="en" title="English">EN</button>
+      <button type="button" data-lang="fr" lang="fr" title="Français">FR</button>
+      <button type="button" data-lang="it" lang="it" title="Italiano">IT</button>
+    </nav>
   </div>
 </header>
 
+<nav class="steps" role="tablist" data-i18n-aria="Schritte" aria-label="Schritte">
+  <div class="wrap steps-inner">
+    <a class="step" role="tab" id="t-objekte" href="#objekte" aria-controls="tab-objekte"><span class="step-n">1</span><span class="step-label" data-i18n="Objekte">Objekte</span><span class="step-badge" id="badge-objekte"></span></a>
+    <a class="step" role="tab" id="t-prioritaeten" href="#prioritaeten" aria-controls="tab-prioritaeten"><span class="step-n">2</span><span class="step-label" data-i18n="Prioritäten">Prioritäten</span></a>
+    <a class="step" role="tab" id="t-ergebnis" href="#ergebnis" aria-controls="tab-ergebnis"><span class="step-n">3</span><span class="step-label" data-i18n="Ergebnis">Ergebnis</span></a>
+  </div>
+</nav>
+
 <main class="wrap layout">
-  <!-- Linke Spalte: Eingabe und Prioritäten -->
+  <!-- Schritt 1: Objekte -->
+  <div class="tab-panel tab-objekte" id="tab-objekte" role="tabpanel" aria-labelledby="t-objekte">
+  <p class="step-intro" data-i18n="Schritt 1: Fügen Sie die Häuser oder Wohnungen hinzu, die Sie vergleichen möchten. Steuerfuss, Distanzen und Reisezeiten werden automatisch ergänzt.">Schritt 1: Fügen Sie die Häuser oder Wohnungen hinzu, die Sie vergleichen möchten. Steuerfuss, Distanzen und Reisezeiten werden automatisch ergänzt.</p>
   <section class="panel" aria-labelledby="h-objekt">
-    <h2 id="h-objekt">Objekt prüfen</h2>
+    <h2 id="h-objekt" data-i18n="Objekt prüfen">Objekt prüfen</h2>
     <form id="lookup-form" autocomplete="off" novalidate>
-      <label for="q" class="field-label">Adresse oder Gemeinde</label>
+      <label for="q" class="field-label" data-i18n="Adresse oder Gemeinde">Adresse oder Gemeinde</label>
       <div class="search">
-        <input id="q" type="text" placeholder="z.B. Bahnhofstrasse 10, 8400 Winterthur" aria-autocomplete="list" aria-controls="suggest" required>
+        <input id="q" type="text" data-i18n-ph="z.B. Bahnhofstrasse 10, 8400 Winterthur" placeholder="z.B. Bahnhofstrasse 10, 8400 Winterthur" aria-autocomplete="list" aria-controls="suggest" required>
         <ul id="suggest" class="suggest" role="listbox" hidden></ul>
       </div>
       <div>
-        <label for="kaufpreis" class="field-label">Kaufpreis (CHF)</label>
-        <input id="kaufpreis" type="number" inputmode="numeric" min="0" step="1000" placeholder="z.B. 1250000">
+        <label for="kaufpreis" class="field-label" data-i18n="Kaufpreis (CHF)">Kaufpreis (CHF)</label>
+        <input id="kaufpreis" type="text" inputmode="numeric" class="money" data-i18n-ph="z.B. 1’250’000" placeholder="z.B. 1’250’000">
       </div>
       <div class="row-2">
         <div>
-          <label for="zimmer" class="field-label">Zimmer</label>
-          <input id="zimmer" type="number" inputmode="decimal" min="0" step="0.5" placeholder="z.B. 4.5">
+          <label for="zimmer" class="field-label" data-i18n="Zimmer">Zimmer</label>
+          <input id="zimmer" type="text" inputmode="decimal" data-i18n-ph="z.B. 4.5" placeholder="z.B. 4.5">
         </div>
         <div>
-          <label for="flaeche" class="field-label">Wohnfläche (m²)</label>
-          <input id="flaeche" type="number" inputmode="numeric" min="0" step="1" placeholder="z.B. 125">
+          <label for="flaeche" class="field-label" data-i18n="Wohnfläche (m²)">Wohnfläche (m²)</label>
+          <input id="flaeche" type="text" inputmode="numeric" data-i18n-ph="z.B. 125" placeholder="z.B. 125">
         </div>
       </div>
-      <button id="btn-lookup" type="submit" class="btn-primary">Daten abrufen und hinzufügen</button>
-      <p class="hint">Fehlt die genaue Adresse, genügt der Gemeindename. Distanzen werden dann ab dem Gemeindezentrum gemessen.</p>
+      <button id="btn-lookup" type="submit" class="btn-primary" data-i18n="Daten abrufen und hinzufügen">Daten abrufen und hinzufügen</button>
+      <p class="hint" data-i18n="Fehlt die genaue Adresse, genügt der Gemeindename. Distanzen werden dann ab dem Gemeindezentrum gemessen.">Fehlt die genaue Adresse, genügt der Gemeindename. Distanzen werden dann ab dem Gemeindezentrum gemessen.</p>
     </form>
     <ol id="progress" class="progress" hidden></ol>
     <p id="form-error" class="error" role="alert" hidden></p>
+    <p id="form-ok" class="ok" role="status" hidden></p>
   </section>
 
+  <section class="panel" aria-labelledby="h-list">
+    <h2 id="h-list" data-i18n="Ihre Objekte">Ihre Objekte</h2>
+    <ul id="prop-list" class="prop-list"></ul>
+    <a href="#prioritaeten" class="btn-next" data-i18n="Weiter zu den Prioritäten →">Weiter zu den Prioritäten →</a>
+  </section>
+  </div>
+
+  <!-- Schritt 2: Prioritäten -->
+  <div class="tab-panel tab-prioritaeten" id="tab-prioritaeten" role="tabpanel" aria-labelledby="t-prioritaeten" hidden>
+  <p class="step-intro" data-i18n="Schritt 2: Legen Sie fest, was Ihnen wichtig ist. Die Einstellungen gelten für alle Objekte.">Schritt 2: Legen Sie fest, was Ihnen wichtig ist. Die Einstellungen gelten für alle Objekte.</p>
+
   <section class="panel" aria-labelledby="h-prio">
-    <h2 id="h-prio">Ihre Prioritäten</h2>
-    <p class="hint">0 = egal, 5 = sehr wichtig. Setzen Sie nur wenige Kriterien auf 5, damit der Score Ihre Prioritäten klar abbildet. Das Muss-Kriterium ist ein Höchstwert: Objekte darüber werden markiert.</p>
+    <h2 id="h-prio" data-i18n="Ihre Prioritäten">Ihre Prioritäten</h2>
+    <p class="hint" data-i18n="Ziehen Sie die Regler von «Egal» (zählt nicht) bis «Sehr wichtig». Setzen Sie nur wenige Kriterien auf «Sehr wichtig», damit der Score Ihre Prioritäten klar abbildet. Das Muss-Kriterium ist ein Höchstwert: Objekte darüber werden markiert.">Ziehen Sie die Regler von «Egal» (zählt nicht) bis «Sehr wichtig». Setzen Sie nur wenige Kriterien auf «Sehr wichtig», damit der Score Ihre Prioritäten klar abbildet. Das Muss-Kriterium ist ein Höchstwert: Objekte darüber werden markiert.</p>
     <div class="wish">
-      <label for="wunschpreis" class="field-label">Gewünschter Kaufpreis (CHF)</label>
-      <input id="wunschpreis" type="number" inputmode="numeric" min="0" step="10000" placeholder="z.B. 1100000">
-      <p class="hint">Genau zum Wunschpreis gibt es 7.5 von 10 Punkten. Günstiger gibt mehr (−10 % = 8.75, ab −20 % volle 10), teurer weniger (+10 % = 3.75, ab +20 % = 0).</p>
+      <label for="wunschpreis" class="field-label" data-i18n="Gewünschter Kaufpreis (CHF)">Gewünschter Kaufpreis (CHF)</label>
+      <input id="wunschpreis" type="text" inputmode="numeric" class="money" data-i18n-ph="z.B. 1’100’000" placeholder="z.B. 1’100’000">
+      <p class="hint" data-i18n="Genau zum Wunschpreis gibt es 7.5 von 10 Punkten. Günstiger gibt mehr (−10 % = 8.75, ab −20 % volle 10), teurer weniger (+10 % = 3.75, ab +20 % = 0).">Genau zum Wunschpreis gibt es 7.5 von 10 Punkten. Günstiger gibt mehr (−10 % = 8.75, ab −20 % volle 10), teurer weniger (+10 % = 3.75, ab +20 % = 0).</p>
     </div>
     <div id="prio-table" class="prio-table"></div>
 
-    <h3 class="sub">Arbeitsort</h3>
-    <p class="hint">Bis zu drei Personen. Jeder Arbeitsort wird ein eigenes Kriterium mit Zug- und Autozeit.</p>
+    <h3 class="sub" data-i18n="Arbeitsort">Arbeitsort</h3>
+    <p class="hint" data-i18n="Bis zu drei Personen. Jeder Arbeitsort wird ein eigenes Kriterium mit Zug- und Autozeit.">Bis zu drei Personen. Jeder Arbeitsort wird ein eigenes Kriterium mit Zug- und Autozeit.</p>
     <div id="work-list" class="work-list"></div>
 
-    <h3 class="sub">Reisezeit zu</h3>
-    <p class="hint">Wählen Sie die Ziele, die für Sie zählen. Jedes Ziel erhält eine eigene Gewichtung. Pro Ziel wählen Sie, ob die Zug- oder Autozeit zählt oder die schnellere von beiden.</p>
-    <div id="dest-chips" class="chips" role="group" aria-label="Ziele"></div>
-    <button id="btn-reset" type="button" class="btn-ghost">Prioritäten zurücksetzen</button>
+    <h3 class="sub" data-i18n="Reisezeit zu">Reisezeit zu</h3>
+    <p class="hint" data-i18n="Wählen Sie die Ziele, die für Sie zählen. Jedes Ziel erhält eine eigene Gewichtung. Pro Ziel wählen Sie, ob die Zug- oder Autozeit zählt oder die schnellere von beiden.">Wählen Sie die Ziele, die für Sie zählen. Jedes Ziel erhält eine eigene Gewichtung. Pro Ziel wählen Sie, ob die Zug- oder Autozeit zählt oder die schnellere von beiden.</p>
+    <div id="dest-chips" class="chips" role="group" data-i18n-aria="Ziele" aria-label="Ziele"></div>
+    <button id="btn-reset" type="button" class="btn-ghost" data-i18n="Prioritäten zurücksetzen">Prioritäten zurücksetzen</button>
+    <a href="#ergebnis" class="btn-next" data-i18n="Weiter zum Ergebnis →">Weiter zum Ergebnis →</a>
   </section>
+  </div>
 
-  <!-- Rechte Spalte: Resultate -->
+  <!-- Schritt 3: Ergebnis -->
+  <div class="tab-panel tab-ergebnis" id="tab-ergebnis" role="tabpanel" aria-labelledby="t-ergebnis" hidden>
+  <p class="step-intro" data-i18n="Schritt 3: Ihre Objekte, sortiert nach Ihren Prioritäten. Klicken Sie auf ein Objekt für die Details, oder wählen Sie 2 zum Vergleichen.">Schritt 3: Ihre Objekte, sortiert nach Ihren Prioritäten. Klicken Sie auf ein Objekt für die Details, oder wählen Sie 2 zum Vergleichen.</p>
+
   <section class="results" aria-labelledby="h-res">
     <div class="results-head">
-      <h2 id="h-res">Rangliste</h2>
-      <button id="btn-clear" type="button" class="btn-ghost" hidden>Alle Objekte entfernen</button>
+      <h2 id="h-res" data-i18n="Rangliste">Rangliste</h2>
     </div>
-    <div id="bulk" class="bulk" role="region" aria-label="Auswahl" aria-live="polite" hidden></div>
-    <p id="maps-hint" class="hint maps-hint" hidden>Tipp: Klicken Sie auf ein Kriterium, um die Route ab der Adresse in Google Maps zu öffnen. <span class="legend"><i aria-hidden="true"></i> Blau = von Hand eingetragen, nicht automatisch abgerufen.</span></p>
+    <div id="bulk" class="bulk" role="region" data-i18n-aria="Auswahl" aria-label="Auswahl" aria-live="polite" hidden></div>
+    <p id="maps-hint" class="hint maps-hint" hidden><span data-i18n="Tipp: Klicken Sie auf ein Kriterium, um die Route ab der Adresse in Google Maps zu öffnen.">Tipp: Klicken Sie auf ein Kriterium, um die Route ab der Adresse in Google Maps zu öffnen.</span> <span class="legend"><i aria-hidden="true"></i> <span data-i18n="Blau = von Hand eingetragen, nicht automatisch abgerufen.">Blau = von Hand eingetragen, nicht automatisch abgerufen.</span></span></p>
     <p id="canton-warn" class="warn" hidden></p>
     <div id="results"></div>
   </section>
+  </div>
 </main>
 
 <main id="compare" class="wrap compare" hidden aria-labelledby="h-cmp">
   <div class="cmp-top">
-    <button id="compare-back" type="button" class="btn-ghost">← Zurück zur Rangliste</button>
-    <h2 id="h-cmp">Vergleich</h2>
+    <button id="compare-back" type="button" class="btn-ghost" data-i18n="← Zurück zur Rangliste">← Zurück zur Rangliste</button>
+    <h2 id="h-cmp" data-i18n="Vergleich">Vergleich</h2>
   </div>
   <div id="compare-body"></div>
 </main>
 
 <footer class="wrap foot">
-  <p>Datenquellen: ESTV Steuerrechner (Steuerfüsse 2026), geo.admin.ch (Adressen, Gemeinden), © OpenStreetMap-Mitwirkende (Bahnhöfe, Geschäfte, Schulen, Autobahnanschlüsse), FOSSGIS OSRM (Routen), transport.opendata.ch (Fahrplan). Alle Angaben ohne Gewähr.</p>
+  <p data-i18n="Datenquellen: ESTV Steuerrechner (Steuerfüsse 2026), geo.admin.ch (Adressen, Gemeinden), © OpenStreetMap-Mitwirkende (Bahnhöfe, Geschäfte, Schulen, Autobahnanschlüsse), FOSSGIS OSRM (Routen), transport.opendata.ch (Fahrplan, Haltestellen), Wikipedia (Liste der grössten Einkaufszentren). Alle Angaben ohne Gewähr.">Datenquellen: ESTV Steuerrechner (Steuerfüsse 2026), geo.admin.ch (Adressen, Gemeinden), © OpenStreetMap-Mitwirkende (Bahnhöfe, Geschäfte, Schulen, Autobahnanschlüsse), FOSSGIS OSRM (Routen), transport.opendata.ch (Fahrplan, Haltestellen), Wikipedia (Liste der grössten Einkaufszentren). Alle Angaben ohne Gewähr.</p>
 </footer>
 
 <script src="data/steuerfuesse.js?v=2026"></script>
-<script src="js/app.js?v=2026-10-21k"></script>
+<script src="data/einkaufszentren.js?v=2026-10-24c"></script>
+<script src="js/i18n.js?v=2026-10-24g"></script>
+<script src="js/app.js?v=2026-10-24g"></script>
 </body>
 </html>

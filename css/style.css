@@ -64,19 +64,8 @@ h3.sub { font-size: 1rem; margin-top: 1.4rem; }
 .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; letter-spacing: -0.01em; }
 .tagline { margin: 0; color: var(--muted); }
 
-/* Layout */
-.layout {
-  display: grid; gap: 20px; padding-block: 24px;
-  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
-  grid-template-areas: "objekt results" "prio results";
-  align-items: start;
-}
-.layout > .panel:nth-of-type(1) { grid-area: objekt; }
-.layout > .panel:nth-of-type(2) { grid-area: prio; }
-.layout > .results { grid-area: results; min-width: 0; }
-@media (max-width: 900px) {
-  .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "objekt" "results" "prio"; }
-}
+/* Layout: siehe «Schritte (Tabs)» weiter unten */
+.results { min-width: 0; }
 
 .panel {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
@@ -357,4 +346,103 @@ form { display: flex; flex-direction: column; gap: 12px; }
   .bulk-actions button { flex: 1 1 0; min-width: 0; justify-content: center; padding-inline: 10px; }
   .lbl-long { display: none; }
   .lbl-short { display: inline; }
+}
+
+/* Sprachwahl */
+.lang { margin-left: auto; display: flex; gap: 2px; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+.lang button {
+  font: inherit; font-family: var(--font-data); font-size: 0.8rem; cursor: pointer; border: 0; border-radius: 999px;
+  padding: 4px 10px; background: transparent; color: var(--muted);
+}
+.lang button:hover { color: var(--ink); }
+.lang button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+@media (max-width: 520px) { .lang { margin-left: 0; } }
+
+/* ---------- Schritte (Tabs) ---------- */
+.layout { display: block; padding-block: 20px 24px; }
+.steps { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 4; }
+.steps-inner { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+.step {
+  display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 8px;
+  color: var(--muted); text-decoration: none; font-weight: 600; border-bottom: 3px solid transparent; min-width: 0;
+}
+.step:hover { color: var(--ink); }
+.step-n {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; flex: none;
+  border: 2px solid currentColor; font-family: var(--font-data); font-size: 0.85rem;
+}
+.step-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.step.active { color: var(--accent); border-bottom-color: var(--accent); }
+.step.active .step-n { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.step-badge {
+  font-family: var(--font-data); font-size: 0.75rem; background: var(--accent-soft); color: var(--accent);
+  border-radius: 999px; padding: 1px 8px;
+}
+.step-badge:empty { display: none; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+
+.tab-panel { display: grid; gap: 20px; align-items: start; }
+.tab-objekte { grid-template-columns: minmax(0, 420px) minmax(0, 1fr); }
+.tab-objekte .step-intro { grid-column: 1 / -1; }
+.tab-prioritaeten { max-width: 760px; margin-inline: auto; }
+.step-intro { margin: 0; font-size: 1.02rem; color: var(--ink); max-width: 70ch; }
+@media (max-width: 900px) { .tab-objekte { grid-template-columns: minmax(0, 1fr); } }
+
+.btn-next {
+  align-self: flex-end; display: inline-block; text-decoration: none; font-weight: 600;
+  background: var(--accent); color: var(--accent-ink); border-radius: 8px; padding: 10px 16px; margin-top: 6px;
+}
+.btn-next:hover { filter: brightness(1.08); }
+.empty .btn-next { margin-top: 14px; }
+.ok { margin: 0; color: var(--good); font-weight: 600; }
+
+/* Liste in Schritt 1 */
+.prop-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.prop-item {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--bg);
+}
+.prop-main { min-width: 0; display: grid; gap: 2px; }
+.prop-main strong { overflow-wrap: anywhere; }
+.prop-main .facts { margin: 0; }
+.prop-status { font-size: 0.85rem; font-weight: 600; }
+.prop-status.ok { color: var(--good); }
+.prop-status.miss { color: var(--bad); }
+.prop-empty { color: var(--muted); padding: 8px 0; }
+.prop-undo { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--warn-soft); border-radius: 8px; padding: 6px 10px; font-size: 0.9rem; }
+
+@media (max-width: 520px) {
+  .step { flex-direction: column; gap: 4px; padding: 8px 4px; font-size: 0.85rem; }
+  .step-badge { display: none; }
+}
+
+/* Angaben in Schritt 1 bearbeiten */
+.prop-edit { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.8fr) minmax(0, 1fr); gap: 8px; margin: 6px 0 4px; }
+.prop-edit label { display: grid; gap: 2px; min-width: 0; }
+.prop-edit span { font-size: 0.75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prop-edit input { padding: 6px 8px; font-size: 0.92rem; background: var(--surface); font-variant-numeric: tabular-nums; }
+input.money { font-variant-numeric: tabular-nums; }
+.prio-name select.mall-select { width: 100%; }
+
+/* Längere Regler mit Text statt Zahl */
+.prio-head, .prio-row { grid-template-columns: minmax(0, 1fr) minmax(250px, 320px) 104px; }
+.slider { gap: 10px; }
+.slider input { flex: 1 1 auto; min-width: 120px; height: 24px; }
+.slider output {
+  font-family: var(--font-body); font-size: 0.85rem; width: 8.8em; flex: none; text-align: left;
+  line-height: 1.2; color: var(--ink);
+}
+.slider.lvl-0 output { color: var(--muted); font-style: italic; }
+.slider.lvl-4 output { color: var(--accent); font-weight: 600; }
+.slider.lvl-5 output { color: var(--accent); font-weight: 700; }
+@media (max-width: 640px) {
+  .prio-head { display: none; }
+  .prio-row {
+    grid-template-columns: minmax(0, 1fr) 104px;
+    grid-template-areas: "name name" "slider limit";
+    row-gap: 6px;
+  }
+  .prio-row .prio-name { grid-area: name; }
+  .prio-row .slider { grid-area: slider; }
+  .prio-row .limit { grid-area: limit; }
 }
