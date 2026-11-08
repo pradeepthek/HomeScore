@@ -767,19 +767,14 @@
         let valueCell = `<input type="number"${man(r.c.key)} step="${step}" min="0" value="${val}" data-prop="${p.id}" data-key="${r.c.key}" aria-label="${esc(T("{crit} für {obj}", { crit: plain(r.c.label), obj: p.label }))}"><span class="unit">${esc(r.c.unit)}</span>`;
         let editedKey = p.edited[r.c.key];
         if (r.c.id === "kaufpreis") {
-          const dev = priceDeviation(p), w = num(state.settings.wunschpreis);
           valueCell = `<input type="text" inputmode="numeric" class="wide money" value="${moneyText(p.kaufpreis)}" data-prop="${p.id}" data-key="kaufpreis" aria-label="${esc(T("Kaufpreis in CHF für {obj}", { obj: p.label }))}"><span class="unit">CHF</span>`;
-          detailText = !w ? T("Wunschpreis unter «Ihre Prioritäten» eintragen")
-            : p.kaufpreis == null ? T("Kaufpreis eintragen")
-            : T(dev > 0 ? "{d} % über Wunschpreis CHF {w}" : dev < 0 ? "{d} % unter Wunschpreis CHF {w}" : "{d} % gleich Wunschpreis CHF {w}", { d: (dev > 0 ? "+" : "") + fmt(dev), w: chf(w) });
+          detailText = rowDetail(r.c, p);
         }
         if (r.c.travel) {
           const k = r.c.key, ev = travelValue(r.c, p);
-          const info = r.c.dest ? (p.destInfo && p.destInfo[r.c.dest.id]) || {} : (p.workInfo && p.workInfo[r.c.work.id]) || {};
-          const km = num(p.v[k + "_km"]);
           const inp = (m, v) => `<label class="dual${ev.used === m ? " used" : ""}"><span>${modeName(m)}</span><input type="number"${man(k + "_" + m)} step="1" min="0" value="${v ?? ""}" data-prop="${p.id}" data-key="${k}_${m}" aria-label="${esc(T("{mode} zu {name} in Minuten für {obj}", { mode: modeName(m), name: r.c.name, obj: p.label }))}"><span class="unit">min</span></label>`;
           valueCell = inp("zug", ev.zug) + inp("auto", ev.auto);
-          detailText = [info.zug ? modeName("zug") + " " + trainInfoText(info.zug) : "", km != null ? T("Auto {km} km, ohne Verkehr", { km }) : ""].filter(Boolean).join(" · ");
+          detailText = rowDetail(r.c, p);
           editedKey = p.edited[k + "_zug"] || p.edited[k + "_auto"];
         }
         const detail = detailText ? `<span class="detail">${esc(detailText)}</span>` : "";
@@ -840,6 +835,21 @@
     if (c.id === "steuer") return `${fmt(v, v % 1 ? 1 : 0)} %`;
     return `${fmt(v, 2)} ${esc(c.unit)}`;
   }
+  // Zusatzzeile zu einem Kriterium: gefundener Ort, Weg und Zeit (auch im Vergleich)
+  function rowDetail(c, p) {
+    if (c.id === "kaufpreis") {
+      const dev = priceDeviation(p), w = num(state.settings.wunschpreis);
+      return !w ? T("Wunschpreis unter «Ihre Prioritäten» eintragen")
+        : p.kaufpreis == null ? T("Kaufpreis eintragen")
+        : T(dev > 0 ? "{d} % über Wunschpreis CHF {w}" : dev < 0 ? "{d} % unter Wunschpreis CHF {w}" : "{d} % gleich Wunschpreis CHF {w}", { d: (dev > 0 ? "+" : "") + fmt(dev), w: chf(w) });
+    }
+    if (c.travel) {
+      const info = c.dest ? (p.destInfo && p.destInfo[c.dest.id]) || {} : (p.workInfo && p.workInfo[c.work.id]) || {};
+      const km = num(p.v[c.key + "_km"]);
+      return [info.zug ? modeName("zug") + " " + trainInfoText(info.zug) : "", km != null ? T("Auto {km} km, ohne Verkehr", { km }) : ""].filter(Boolean).join(" · ");
+    }
+    return metaText(p, c.key);
+  }
   function renderCompare() {
     const [a, b] = (compareIds || []).map((id) => state.props.find((p) => p.id === id));
     const box = $("#compare-body");
@@ -855,6 +865,7 @@
       }
       const cell = (r, p, side) => `<td class="cmp-cell${better === side ? " better" : ""}${r.fail ? " fail" : ""}">
           <span class="cmp-val">${showValue(ra.c, p)}</span>
+          ${(() => { const d = ra.c.id === "kaufpreis" ? "" : rowDetail(ra.c, p); return d ? `<span class="cmp-detail">${esc(d)}</span>` : ""; })()}
           <span class="cmp-pts">${r.sc == null ? T("kein Score") : T("{p} Punkte", { p: fmt(r.sc) })}${r.fail ? " · " + T("Muss-Kriterium nicht erfüllt") : ""}</span>
         </td>`;
       return `<tr class="${ra.w === 0 ? "off" : ""}">

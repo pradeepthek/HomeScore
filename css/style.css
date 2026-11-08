@@ -326,6 +326,7 @@ form { display: flex; flex-direction: column; gap: 12px; }
 .cmp-cell { width: 35%; }
 .cmp-cell .cmp-val { display: block; font-family: var(--font-data); font-size: 0.9rem; }
 .cmp-cell .cmp-val .muted { font-family: var(--font-body); color: var(--muted); font-size: 0.8rem; }
+.cmp-cell .cmp-detail { display: block; color: var(--muted); font-size: 0.8rem; margin: 1px 0 2px; overflow-wrap: anywhere; }
 .cmp-cell .cmp-pts { display: block; color: var(--muted); font-size: 0.8rem; }
 .cmp-cell.better { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--good); }
 .cmp-cell.better .cmp-pts { color: var(--good); font-weight: 600; }
