@@ -32,9 +32,9 @@
     // Reihenfolge = Reihenfolge der Versuche. Zuerst der Schweizer Server (nur Schweizer Daten,
     // betrieben aus der Schweizer OpenStreetMap-Community), dann die internationalen Ersatzserver.
     overpass: [
-      // Schweizer Server: vorübergehend aus, bis der Betreiber (User:Datendelphin) zustimmt.
-      // Zum Einschalten die nächste Zeile wieder aktivieren (// entfernen) und in index.html ?v= erhöhen.
-      // "https://overpass.osm.ch/api/interpreter",
+      // Schweizer Server (Betreiber: User:Datendelphin, per E-Mail informiert) als Standard.
+      // Zum Ausschalten die nächste Zeile mit // auskommentieren und in index.html ?v= erhöhen.
+      "https://overpass.osm.ch/api/interpreter",
       "https://overpass-api.de/api/interpreter",
       "https://overpass.private.coffee/api/interpreter",
     ],

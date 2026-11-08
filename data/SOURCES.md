@@ -37,7 +37,7 @@ Steuerfüsse sind nur innerhalb desselben Kantons vergleichbar, da jeder Kanton 
 | Daten | Dienst | URL |
 |---|---|---|
 | Adresssuche, Gemeinde | geo.admin.ch (swisstopo) | https://api3.geo.admin.ch |
-| Lebensmittelgeschäft, Autobahnanschluss, Schule, Kindergarten (Bahnhof nur als Ersatz) | OpenStreetMap über Overpass API: overpass-api.de (FOSSGIS, DE), Ersatz overpass.private.coffee. overpass.osm.ch (Schweiz) vorbereitet, aber ausgeschaltet bis zur Zustimmung des Betreibers | https://overpass-api.de |
+| Lebensmittelgeschäft, Autobahnanschluss, Schule, Kindergarten (Bahnhof nur als Ersatz) | OpenStreetMap über Overpass API: zuerst overpass.osm.ch (Schweiz), Ersatz overpass-api.de (FOSSGIS, DE) und overpass.private.coffee | https://overpass.osm.ch |
 | Fuss- und Autorouten | FOSSGIS OSRM | https://routing.openstreetmap.de |
 | Reisezeiten Zug | transport.opendata.ch | https://transport.opendata.ch |
 
