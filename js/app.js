@@ -100,6 +100,8 @@
 
   // ---------- Zustand (im Browser gespeichert) ----------
   const STORE_KEY = "homescore.v1";
+  // Namen von Kliniken, die kein Akutspital sind (für «Spital»)
+  const NOT_ACUTE_HOSPITAL = /psychiatr|psychosomat|psychiatrique|psichiatr|\breha\b|reha-|rehaklinik|rehaclinic|rehabilitation|réadaptation|riabilitazione|pflege|hospiz|palliativ|sucht|forensi|geriatri|tierspital|tierklinik|kleintier|vétérinaire|veterinari|seniorenzentrum|altersheim|clinique psychiatrique|clinica psichiatrica|tagesklinik/i;
   const defaultSettings = () => {
     const w = {}, lim = {};
     CRITERIA.forEach((c) => { w[c.id] = 3; lim[c.id] = null; });
@@ -138,6 +140,13 @@
         if (p.schoolV === 2) return;
         if (!(p.edited && p.edited.schule)) { if (p.v) delete p.v.schule; if (p.meta) delete p.meta.schule; if (p.target) delete p.target.schule; if (p.notFound) delete p.notFound.schule; }
         p.schoolV = 2;
+      });
+      // ältere Objekte: «Spital» konnte eine Psychiatrie oder Reha-Klinik sein -> neu suchen, wenn der gefundene Ort keine Akutklinik ist
+      state.props.forEach((p) => {
+        if (p.hospitalV === 2) return;
+        const m = p.meta && p.meta.spital, nm = m && typeof m === "object" ? String(m.name || "") : "";
+        if (nm && NOT_ACUTE_HOSPITAL.test(nm) && !(p.edited && p.edited.spital)) { delete p.v.spital; delete p.meta.spital; if (p.target) delete p.target.spital; if (p.notFound) delete p.notFound.spital; }
+        p.hospitalV = 2;
       });
       // ältere Objekte: Reisezeit war nur Zug
       state.props.forEach((p) => DESTS.forEach((d) => {
@@ -283,7 +292,8 @@
     grocery: { filter: 'nwr["shop"="supermarket"]', radii: [1.5, 4, 10] },
     // Nur Primarschulen: Schulstufe (isced:level 1 / school=primary) oder Name mit «Primar…», «école primaire», «scuola elementare»
     school: { filter: 'nwr["amenity"="school"]', radii: [1.5, 4, 10], accept: isPrimarySchool },
-    hospital: { filter: 'nwr["amenity"="hospital"]', radii: [5, 12, 30] },
+    // Nur Akutspitäler: keine Psychiatrie, Reha, Pflege, Palliativ, Tierspital
+    hospital: { filter: 'nwr["amenity"="hospital"]', radii: [5, 12, 30], accept: isAcuteHospital },
     kindergarten: { filter: 'nwr["amenity"="kindergarten"]', radii: [1.5, 4, 10] },
     exit: { filter: 'node["highway"="motorway_junction"]', radii: [6, 15, 30] },
     station: { filter: '(node["railway"="station"];node["railway"="halt"];)', radii: [3, 8, 15] },
@@ -295,6 +305,15 @@
     if (/(^|[;,\s-])1([;,\s-]|$)/.test(isced)) return true;
     if (/primary/i.test(t.school || "") || /primary/i.test(t["school:type"] || "") || /primar/i.test(t["school:level"] || "")) return true;
     return /primar|primaire|elementare|scuola elementare|scuole elementari|primaria/i.test(name);
+  }
+  function isAcuteHospital(el) {
+    const t = el.tags || {};
+    if (t.emergency === "no") return false;
+    const name = [t.name, t["name:de"], t["name:fr"], t["name:it"], t.official_name, t.operator].filter(Boolean).join(" ");
+    if (NOT_ACUTE_HOSPITAL.test(name)) return false;
+    const sp = String(t["healthcare:speciality"] || "");
+    if (/psychiatr|rehabilit|geriatr|palliativ|psychotherap|addiction|sucht/i.test(sp) && !/general|emergency|internal|surgery/i.test(sp)) return false;
+    return true;
   }
   async function osmNearest(kind, from) {
     const cfg = OSM_SEARCH[kind];
@@ -362,10 +381,28 @@
   async function nearestStation(lat, lon) {
     const loc = await getJSON(`${API.transport}locations?x=${lat}&y=${lon}&type=station`, {}, 15000);
     const st = loc.stations || [];
-    const station = st.find((s) => s.icon === "train" && s.id) || st.find((s) => s.id);
-    if (!station) throw new Error("keine Haltestelle");
-    const c = station.coordinate || {};
-    return { id: station.id, name: station.name, lat: c.x, lon: c.y };
+    const station = st.find((s) => s.icon === "train" && s.id);
+    if (station) {
+      const c = station.coordinate || {};
+      return { id: station.id, name: station.name, lat: c.x, lon: c.y, train: true };
+    }
+    // Der Fahrplan liefert nur die ca. 10 nächsten Haltestellen. Sind das nur Bus-/Tramhaltestellen
+    // (z.B. Niederlenz), den nächsten Bahnhof in OpenStreetMap suchen und im Fahrplan nachschlagen.
+    try {
+      const osm = await osmNearest("station", { lat, lon });
+      if (osm && osm.name) {
+        const q = await getJSON(`${API.transport}locations?query=${encodeURIComponent(osm.name)}&type=station`, {}, 15000);
+        const hit = (q.stations || []).find((s) => s.id && s.icon === "train" && s.coordinate && s.coordinate.x != null
+          && haversineKm(osm.pos, { lat: s.coordinate.x, lon: s.coordinate.y }) < 1.5);
+        if (hit) return { id: hit.id, name: hit.name, lat: hit.coordinate.x, lon: hit.coordinate.y, train: true };
+        return { id: null, name: osm.name, lat: osm.pos.lat, lon: osm.pos.lon, train: true };
+      }
+    } catch (e) { /* weiter mit der nächsten Haltestelle */ }
+    // Kein Bahnhof gefunden: nächste Haltestelle nur noch für die Zugverbindungen verwenden
+    const any = st.find((s) => s.id);
+    if (!any) throw new Error("keine Haltestelle");
+    const c = any.coordinate || {};
+    return { id: any.id, name: any.name, lat: c.x, lon: c.y, train: false };
   }
   // Nächste Haltestelle jeder Art (Bus, Tram, Zug, Schiff …)
   async function nearestStop(lat, lon) {
@@ -418,6 +455,7 @@
   function trainInfoText(info) {
     if (!info) return "";
     if (typeof info === "string") return info; // ältere Objekte
+    if (info.d2d) return T("Haustür bis Arbeitsort, mit Fusswegen") + ", " + transfersText(info.tr);
     if (info.to) return `${info.from} → ${info.to}, ${transfersText(info.tr)}`;
     return T("ab {st}", { st: info.st }) + ", " + transfersText(info.tr);
   }
@@ -425,7 +463,7 @@
     const station = await stationP;
     const out = {};
     await Promise.all(DESTS.map(async (d) => {
-      try { const c = await fastestConnection(station.id, d.to); if (c) out[d.id] = c; } catch (e) { /* Ziel bleibt leer */ }
+      try { const c = await fastestConnection(station.id || station.name, d.to); if (c) out[d.id] = c; } catch (e) { /* Ziel bleibt leer */ }
     }));
     return { station: station.name, stationObj: station, times: out };
   }
@@ -444,7 +482,7 @@
         if (c.osm === "station") {
           try {
             const st = await (stationP || nearestStation(p.lat, p.lon));
-            if (st.lat != null) b = { pos: { lat: st.lat, lon: st.lon }, name: st.name };
+            if (st.lat != null && st.train) b = { pos: { lat: st.lat, lon: st.lon }, name: st.name };
           } catch (e) { /* weiter mit OpenStreetMap */ }
         }
         if (c.osm === "stop") {
@@ -483,7 +521,7 @@
   async function buildProperty(place, facts, onStep) {
     const p = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      schoolV: 2,
+      schoolV: 2, hospitalV: 2, workV: 2,
       label: place.label,
       approx: place.origin !== "address",
       lat: place.lat, lon: place.lon,
@@ -573,12 +611,21 @@
     if (!p.edited[k + "_zug"]) {
       jobs.push((async () => {
         try {
-          if (!p.station) p.station = await nearestStation(p.lat, p.lon);
-          const c = w.station ? await fastestConnection(p.station.id, w.station.id) : null;
+          // Haustür bis Arbeitsort: Fahrplan mit Koordinaten, inkl. Fussweg zur ersten und ab der letzten Haltestelle (auch Bus/Tram)
+          let c = null;
+          try { c = await fastestConnection(`${p.lat},${p.lon}`, `${w.lat},${w.lon}`); } catch (e) { c = null; }
           if (c) {
             p.v[k + "_zug"] = c.min;
-            p.workInfo[w.id].zug = { from: p.station.name, to: w.station.name, tr: c.transfers };
-          } else delete p.v[k + "_zug"];
+            p.workInfo[w.id].zug = { d2d: true, tr: c.transfers };
+          } else {
+            // Ersatz: Bahnhof beim Objekt bis Bahnhof beim Arbeitsort (ohne Fusswege)
+            if (!p.station) p.station = await nearestStation(p.lat, p.lon);
+            c = w.station ? await fastestConnection(p.station.id || p.station.name, w.station.id || w.station.name) : null;
+            if (c) {
+              p.v[k + "_zug"] = c.min;
+              p.workInfo[w.id].zug = { from: p.station.name, to: w.station.name, tr: c.transfers };
+            } else delete p.v[k + "_zug"];
+          }
         } catch (e) { delete p.v[k + "_zug"]; }
       })());
     }
@@ -1422,6 +1469,15 @@
   applyStatic();
   renderWork();
   renderAll();
+  // ältere Objekte: Arbeitsweg öV war Bahnhof bis Bahnhof -> einmal Haustür bis Arbeitsort neu berechnen
+  (async () => {
+    const ws = activeWork();
+    const todo = state.props.filter((p) => p.workV !== 2);
+    if (!todo.length) return;
+    if (ws.length) await Promise.all(todo.map((p) => Promise.all(ws.map((w) => computeWork(p, w)))));
+    todo.forEach((p) => { p.workV = 2; });
+    save(); renderResults();
+  })();
   route_();
   $("#compare-back").addEventListener("click", () => {
     location.hash = "ergebnis";

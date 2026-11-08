@@ -31,7 +31,7 @@ HomeScore/
 | Autobahnanschluss | ≤ 2 km | 6 km | ≥ 15 km | OpenStreetMap |
 | Kindergarten | ≤ 0.5 km | 1.5 km | ≥ 3 km | OpenStreetMap |
 | Primarschule | ≤ 0.5 km | 1.5 km | ≥ 3 km | OpenStreetMap (nur Primarschulen: Schulstufe oder Name) |
-| Spital | ≤ 3 km | 8 km | ≥ 20 km | OpenStreetMap (amenity=hospital) |
+| Spital | ≤ 3 km | 8 km | ≥ 20 km | OpenStreetMap (amenity=hospital, nur Akutspitäler: ohne Psychiatrie, Reha, Pflege, Palliativ, Tierspital) |
 | Lebensmittelgeschäft | ≤ 0.3 km | 1.5 km | ≥ 4 km | OpenStreetMap |
 | Einkaufszentrum (25 grösste der Schweiz; nächstes oder in den Prioritäten gewähltes) | ≤ 5 km | 15 km | ≥ 30 km | Liste: Wikipedia · Lage: OpenStreetMap (data/einkaufszentren.json) |
 | Arbeitsweg (je Person, bis 3) | ≤ 15 min | 45 min | ≥ 90 min | Zug: transport.opendata.ch · Auto: FOSSGIS OSRM |
@@ -40,7 +40,7 @@ HomeScore/
 - Orte aus OpenStreetMap: eine kleine Abfrage pro Kategorie, in einem Rechteck um das Objekt, das schrittweise wächst (z.B. 1.5 → 4 → 10 km).
 - Distanzen: Fussweg, wenn dieser höchstens 1 km lang ist, sonst Autoroute (FOSSGIS OSRM). Fällt der Routendienst aus, wird die Luftlinie angezeigt.
 - Reisezeit: pro Ziel Zug und Auto. Zug = schnellste Verbindung ab dem nächsten Bahnhof, Dienstag 07:30, mit Anzahl Umstiege. Auto = Route ohne Verkehr, mit km. Pro Ziel wählt der Käufer, was zählt: Zug, Auto oder der schnellere Wert.
-- Arbeitsort: bis zu drei Personen mit Name und Adresse. Zug = Bahnhof beim Objekt bis Bahnhof beim Arbeitsort (ohne Fusswege), Auto = Haustür bis Arbeitsort. Pro Person wählbar: Zug, Auto oder schneller. Neue oder geänderte Arbeitsorte werden für alle Objekte neu berechnet.
+- Arbeitsort: bis zu drei Personen mit Name und Adresse. öV = Haustür bis Arbeitsort (transport.opendata.ch mit Koordinaten: Fussweg zur ersten Haltestelle, Bus/Tram/Zug, Fussweg ab der letzten Haltestelle; Ersatz: Bahnhof bis Bahnhof), Auto = Haustür bis Arbeitsort. Pro Person wählbar: Zug, Auto oder schneller. Neue oder geänderte Arbeitsorte werden für alle Objekte neu berechnet.
 - Kaufpreis: Der Käufer gibt einen Wunschpreis ein. Punkte: günstiger als Wunschpreis 7.5 + 0.125 pro % (max. 10), teurer 7.5 − 0.375 pro % (min. 0): −20 % = 10, −10 % = 8.75, 0 % = 7.5, +10 % = 3.75, +20 % = 0. Günstigere Objekte stehen also höher. Muss-Kriterium = max. % über dem Wunschpreis.
 - Inserat übernehmen: Käufer kopiert die ganze Inseratsseite (Ctrl+A, Ctrl+C) und fügt sie ein. Erkannt werden Adresse, Kaufpreis, Zimmer, Wohnfläche (DE/FR/IT/EN-Bezeichnungen), dazu als Information Objektart, Baujahr, Renovation, Geschoss, Nutz- und Grundstücksfläche, Nebenkosten und im Text erwähnte Zusatzkosten (z.B. Einstellplatz). Fehlendes wird gemeldet; nur «PLZ Ort» ohne Strasse → Gemeinde, mit Hinweis. Der Link wird beim Objekt gespeichert («Inserat ↗»). Die Seite selbst wird nicht abgerufen: Browser-Sperre (CORS), Bot-Schutz von Homegate/ImmoScout24 und Nutzungsbedingungen der Portale.
 - Aufbau in 3 Schritten (Tabs): 1 Objekte erfassen (mit Liste der erfassten Objekte), 2 Prioritäten, 3 Ergebnis (Rangliste, Vergleich). «Weiter»-Knöpfe führen durch die Schritte; Adressen #objekte, #prioritaeten, #ergebnis; der zuletzt offene Schritt bleibt gespeichert.
