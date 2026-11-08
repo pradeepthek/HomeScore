@@ -399,7 +399,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 /* Liste in Schritt 1 */
 .prop-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .prop-item {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-items: center;
   border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--bg);
 }
 .prop-main { min-width: 0; display: grid; gap: 2px; }
@@ -472,9 +472,13 @@ input.money { font-variant-numeric: tabular-nums; }
 .import-result .note::before { content: "⚠ "; }
 .import-result .muted { color: var(--muted); }
 input.from-ad { border-color: var(--good); box-shadow: inset 3px 0 0 var(--good); }
-.ad-link { color: var(--accent); font-weight: 600; text-decoration: none; white-space: nowrap; }
-.ad-link:hover { text-decoration: underline; }
 .meta.extras span + span::before { content: "·"; margin-right: 8px; }
 .meta.zusatz { color: var(--mid); }
-.prop-edit .url { grid-column: 1 / -1; }
-.prop-main .ad-link { font-size: 0.88rem; margin-right: 10px; }
+.prop-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.btn-del {
+  display: inline-flex; align-items: center; gap: 6px; flex: none; font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  background: var(--bad); color: #fff; border: 0; border-radius: 7px; padding: 5px 10px;
+}
+.btn-del:hover { filter: brightness(1.1); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn-del { color: #1a0d0a; } }
+:root[data-theme="dark"] .btn-del { color: #1a0d0a; }

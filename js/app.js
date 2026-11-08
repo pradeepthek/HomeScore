@@ -798,7 +798,7 @@
           <div class="card-title">
             <h3>${esc(p.label)}</h3>
             ${factsHtml(p)}
-            <div class="meta">${p.gemeinde ? `<span>${esc(p.gemeinde)} (${esc(p.kanton)})</span>` : ""}${tags.join(" ")}${p.url ? `<a class="ad-link" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(T("Inserat"))}${p.portal ? " " + esc(p.portal) : ""}<span aria-hidden="true"> ↗</span></a>` : ""}</div>
+            <div class="meta">${p.gemeinde ? `<span>${esc(p.gemeinde)} (${esc(p.kanton)})</span>` : ""}${tags.join(" ")}</div>
             ${(() => { const x = extrasText(p.extras); return x.length ? `<div class="meta extras">${x.map((t) => `<span>${esc(t)}</span>`).join("")}</div>` : ""; })()}
             ${p.zusatz && p.zusatz.length ? `<div class="meta zusatz">${esc(T("Zusatzkosten im Inserat: {list}", { list: zusatzText(p.zusatz) }))}</div>` : ""}
           </div>
@@ -1041,14 +1041,12 @@
         ? `<span class="prop-status ok">✓ ${T("Daten vollständig")}</span>`
         : `<span class="prop-status miss">${miss === 1 ? T("1 Wert fehlt") : T("{n} Werte fehlen", { n: miss })}</span>`;
       return `<li class="prop-item">
-        <div class="prop-main"><strong>${esc(p.label)}</strong>
+        <div class="prop-main"><div class="prop-head"><strong>${esc(p.label)}</strong><button type="button" class="btn-del" data-remove="${p.id}" aria-label="${esc(T("{obj} entfernen", { obj: p.label }))}"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>${T("Entfernen")}</button></div>
           <div class="prop-edit">
             <label><span>${T("Kaufpreis (CHF)")}</span><input type="text" inputmode="numeric" class="money" id="pk-${p.id}" data-edit="kaufpreis" data-prop="${p.id}" value="${moneyText(p.kaufpreis)}"></label>
             <label><span>${T("Zimmer")}</span><input type="text" inputmode="decimal" id="pz-${p.id}" data-edit="zimmer" data-prop="${p.id}" value="${p.zimmer ?? ""}"></label>
             <label><span>${T("Wohnfläche (m²)")}</span><input type="text" inputmode="numeric" id="pf-${p.id}" data-edit="flaeche" data-prop="${p.id}" value="${p.flaeche ?? ""}"></label>
-            <label class="url"><span>${T("Link zum Inserat (optional)")}</span><input type="url" inputmode="url" id="pu-${p.id}" data-edit="url" data-prop="${p.id}" value="${esc(p.url || "")}" placeholder="https://…"></label>
-          </div>${p.url ? `<a class="ad-link" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(T("Inserat öffnen"))}<span aria-hidden="true"> ↗</span></a> ` : ""}${status}</div>
-        <button type="button" class="btn-x" data-remove="${p.id}" aria-label="${esc(T("{obj} entfernen", { obj: p.label }))}" title="${esc(T("Entfernen"))}">×</button>
+          </div>${status}</div>
       </li>`;
     }).join("");
   }
@@ -1058,7 +1056,6 @@
     if (!f) return;
     const p = state.props.find((x) => x.id === t.dataset.prop);
     if (!p) return;
-    if (f === "url") { const u = cleanUrl(t.value); p.url = u || null; p.portal = u ? window.HS_portalOf(u) : null; save(); renderResults(); return; }
     const n = f === "kaufpreis" ? moneyVal(t) : decimalVal(t);
     p[f] = n != null && n > 0 ? n : null;
     save(); renderResults();
@@ -1068,8 +1065,8 @@
   });
   $("#prop-list").addEventListener("click", (ev) => {
     if (ev.target.dataset && ev.target.dataset.undo) { doUndo(); return; }
-    const id = ev.target.dataset && ev.target.dataset.remove;
-    if (id) removeProps(new Set([id]));
+    const del = ev.target.closest("[data-remove]");
+    if (del) removeProps(new Set([del.dataset.remove]));
   });
 
   // Aufgeklappte Objekte (pro Browser gemerkt); standardmässig nur die Kopfzeile
@@ -1272,14 +1269,9 @@
   }
 
   // ---------- Angaben aus einem Inserat ----------
-  let lastImport = null, importUrl = "";
-  function cleanUrl(v) {
-    const t = String(v || "").trim();
-    if (!t) return "";
-    try { const u = new URL(/^https?:\/\//i.test(t) ? t : "https://" + t); return /^https?:$/.test(u.protocol) && u.hostname.includes(".") ? u.href : ""; } catch (e) { return ""; }
-  }
+  let lastImport = null;
   function clearImport() {
-    lastImport = null; importUrl = "";
+    lastImport = null;
     $("#inserat-text").value = "";
     $("#import-result").hidden = true; $("#import-result").innerHTML = "";
     ["#q", "#kaufpreis", "#zimmer", "#flaeche"].forEach((sel) => $(sel).classList.remove("from-ad"));
@@ -1313,16 +1305,11 @@
     }
     const r = window.HS_parseListing(text, "");
     if (r.onlyUrl) {
-      // Nur ein Link: wird beim Objekt gespeichert, Werte bitte von Hand eintragen
       lastImport = null;
-      importUrl = cleanUrl(text);
       box.className = "import-result warn";
-      box.innerHTML = importUrl
-        ? `<p><strong>${esc(T("Link gespeichert"))}${r.portal ? " (" + esc(r.portal) + ")" : ""}.</strong> ${esc(T("Aus einem Link kann HomeScore keine Angaben lesen (Sperre der Portale). Adresse, Kaufpreis, Zimmer und Wohnfläche bitte von Hand eintragen, oder statt des Links den ganzen Seitentext einfügen."))}</p>`
-        : `<p class="miss">${esc(T("Ungültiger Link."))}</p>`;
+      box.innerHTML = `<p>${esc(T("Bitte den Text der Inseratsseite einfügen (Ctrl+A, dann Ctrl+C), nicht den Link."))}</p>`;
       box.hidden = false; return;
     }
-    importUrl = "";
     lastImport = r;
     const found = [], missing = [], notes = [];
     if (r.address) {
@@ -1351,7 +1338,7 @@
   $("#btn-import").addEventListener("click", runImport);
   $("#btn-import-clear").addEventListener("click", () => { clearImport(); $("#inserat-text").focus(); });
   $("#inserat-text").addEventListener("paste", () => setTimeout(runImport, 0));
-  $("#inserat-text").addEventListener("input", (ev) => { if (!ev.target.value.trim()) { lastImport = null; importUrl = ""; $("#import-result").hidden = true; } });
+  $("#inserat-text").addEventListener("input", (ev) => { if (!ev.target.value.trim()) { lastImport = null; $("#import-result").hidden = true; } });
   ["#q", "#kaufpreis", "#zimmer", "#flaeche"].forEach((sel) => $(sel).addEventListener("input", () => $(sel).classList.remove("from-ad")));
 
   $("#lookup-form").addEventListener("submit", async (ev) => {
@@ -1380,8 +1367,6 @@
     }
     const pos = (n) => (n != null && n > 0 ? n : null);
     const facts = { kaufpreis: pos(moneyVal($("#kaufpreis"))), zimmer: pos(decimalVal($("#zimmer"))), flaeche: pos(decimalVal($("#flaeche"))) };
-    if (!importUrl && !lastImport) { const t = $("#inserat-text").value.trim(); if (/^https?:\/\/\S+$/i.test(t)) importUrl = cleanUrl(t); }
-    if (importUrl) { facts.url = importUrl; facts.portal = window.HS_portalOf(importUrl); }
     if (lastImport) { facts.extras = lastImport.extras; facts.zusatz = lastImport.zusatz; }
 
     btn.disabled = true; btn.textContent = T("Daten werden abgerufen …");
