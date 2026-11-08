@@ -12,6 +12,7 @@ HomeScore/
 ├── css/style.css           Gestaltung
 ├── js/app.js               Logik: Abfragen, Bewertung, Anzeige
 ├── js/i18n.js              Übersetzungen EN / FR / IT (Schlüssel = deutscher Text)
+├── js/inserat.js           liest Adresse, Kaufpreis, Zimmer, Wohnfläche aus kopiertem Inseratstext
 └── data/
     ├── raw/estv_steuerfuesse_2026.xlsx   ESTV-Original, unverändert
     ├── steuerfuesse.json                 bereinigte Daten
@@ -41,11 +42,12 @@ HomeScore/
 - Reisezeit: pro Ziel Zug und Auto. Zug = schnellste Verbindung ab dem nächsten Bahnhof, Dienstag 07:30, mit Anzahl Umstiege. Auto = Route ohne Verkehr, mit km. Pro Ziel wählt der Käufer, was zählt: Zug, Auto oder der schnellere Wert.
 - Arbeitsort: bis zu drei Personen mit Name und Adresse. Zug = Bahnhof beim Objekt bis Bahnhof beim Arbeitsort (ohne Fusswege), Auto = Haustür bis Arbeitsort. Pro Person wählbar: Zug, Auto oder schneller. Neue oder geänderte Arbeitsorte werden für alle Objekte neu berechnet.
 - Kaufpreis: Der Käufer gibt einen Wunschpreis ein. Punkte: günstiger als Wunschpreis 7.5 + 0.125 pro % (max. 10), teurer 7.5 − 0.375 pro % (min. 0): −20 % = 10, −10 % = 8.75, 0 % = 7.5, +10 % = 3.75, +20 % = 0. Günstigere Objekte stehen also höher. Muss-Kriterium = max. % über dem Wunschpreis.
+- Inserat übernehmen: Käufer kopiert die ganze Inseratsseite (Ctrl+A, Ctrl+C) und fügt sie ein. Erkannt werden Adresse, Kaufpreis, Zimmer, Wohnfläche (DE/FR/IT/EN-Bezeichnungen), dazu als Information Objektart, Baujahr, Renovation, Geschoss, Nutz- und Grundstücksfläche, Nebenkosten und im Text erwähnte Zusatzkosten (z.B. Einstellplatz). Fehlendes wird gemeldet; nur «PLZ Ort» ohne Strasse → Gemeinde, mit Hinweis. Der Link wird beim Objekt gespeichert («Inserat ↗»). Die Seite selbst wird nicht abgerufen: Browser-Sperre (CORS), Bot-Schutz von Homegate/ImmoScout24 und Nutzungsbedingungen der Portale.
 - Aufbau in 3 Schritten (Tabs): 1 Objekte erfassen (mit Liste der erfassten Objekte), 2 Prioritäten, 3 Ergebnis (Rangliste, Vergleich). «Weiter»-Knöpfe führen durch die Schritte; Adressen #objekte, #prioritaeten, #ergebnis; der zuletzt offene Schritt bleibt gespeichert.
 - Score-Farbe in der Kopfzeile: grün = alle gewichteten Kriterien haben einen Wert, rot = Werte fehlen (Anzahl darunter, Liste beim Darüberfahren). Dann aufklappen und «Fehlende Orte erneut suchen» oder Wert von Hand eintragen.
-- Rangliste: pro Objekt nur die Kopfzeile (Adresse, Kaufpreis, Zimmer, Wohnfläche, Score). Details über den Pfeil oder Klick auf die Kopfzeile aufklappen.
+- Rangliste: pro Objekt nur die Kopfzeile (Adresse, Kaufpreis, Zimmer, Wohnfläche, Preis pro m², Score). Der Preis pro m² ist nur Information und fliesst nicht in den Score ein. Details über den Pfeil oder Klick auf die Kopfzeile aufklappen.
 - Gewichtung: Regler mit Text statt Zahl: Egal (0, zählt nicht), Unwichtig (1), Eher unwichtig (2), Neutral (3, Standard), Wichtig (4), Sehr wichtig (5).
-- Gesamtscore 0–100 = Σ (Punkte × Gewicht) ÷ Σ Gewichte × 10 (Gewichtung 0–5, 0 = ignoriert). In den Details zeigt die Spalte «Beitrag», wie viele der 100 Punkte jedes Kriterium beiträgt; die Rechnung steht unter der Tabelle.
+- Gesamtscore 0–100 = Σ (Punkte × Gewicht) ÷ Σ Gewichte × 10 (Gewichtung 0–5, 0 = ignoriert). Die Rechnung steht unter der Tabelle in den Details, mit der Zuordnung Wort → Zahl (Egal = 0 … Sehr wichtig = 5).
 - Muss-Kriterien: Höchstwert je Kriterium. Objekte darüber werden markiert und ans Ende der Rangliste gesetzt.
 - Alle abgerufenen Werte sind in der Rangliste editierbar. Von Hand eingetragene Werte sind blau markiert (Feld und Hinweis «angepasst»).
 - Auswahl: Objekte ankreuzen; sobald etwas ausgewählt ist, erscheint ein roter Knopf «… ausgewählte Objekte entfernen». Nach dem Entfernen 8 Sekunden lang «Rückgängig».
@@ -70,6 +72,7 @@ Geprüfte Fachbegriffe:
 | ESTV | FTA | AFC | AFC |
 
 ## Bekannte Grenzen
+- Inserat übernehmen: Erkennung über Bezeichnungen und Muster im Text. Ändert ein Portal seine Darstellung, kann ein Wert fehlen; dann wird gewarnt. Werte vor dem Hinzufügen prüfen.
 - Steuerfüsse sind nur innerhalb eines Kantons vergleichbar. Die Seite warnt bei Objekten in mehreren Kantonen.
 - «Primarschule» zählt nur Schulen, die in OpenStreetMap als Primarschule erkennbar sind (Schulstufe isced:level 1 / school=primary oder Name mit «Primar…», «école primaire», «scuola elementare»). Nicht so gekennzeichnete Primarschulen fehlen; dann den Wert über den Google-Maps-Link prüfen und von Hand eintragen.
 - Die öffentlichen Dienste haben Nutzungslimiten. Für eine öffentliche Website mit vielen Besuchern braucht es später Caching oder eigene Server.

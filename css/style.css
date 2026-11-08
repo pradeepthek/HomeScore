@@ -74,11 +74,11 @@ h3.sub { font-size: 1rem; margin-top: 1.4rem; }
 .hint { color: var(--muted); font-size: 0.9rem; margin: 0; }
 .field-label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
 
-input[type="text"], input[type="number"] {
+input[type="text"], input[type="number"], input[type="url"], textarea {
   width: 100%; font: inherit; color: var(--ink); background: var(--bg);
   border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
 }
-input:focus-visible, button:focus-visible, .chip:focus-within {
+input:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible, .chip:focus-within {
   outline: 2px solid var(--accent); outline-offset: 2px;
 }
 form { display: flex; flex-direction: column; gap: 12px; }
@@ -446,3 +446,35 @@ input.money { font-variant-numeric: tabular-nums; }
   .prio-row .slider { grid-area: slider; }
   .prio-row .limit { grid-area: limit; }
 }
+
+/* Gewichtung als Wort in der Rangliste */
+.breakdown td.w { font-family: var(--font-body); font-size: 0.85rem; color: var(--ink); white-space: nowrap; }
+.breakdown td.w.lvl-0 { color: var(--muted); font-style: italic; }
+.breakdown td.w.lvl-4 { color: var(--accent); font-weight: 600; }
+.breakdown td.w.lvl-5 { color: var(--accent); font-weight: 700; }
+
+/* Preis pro m², nur Information */
+.facts .m2 { color: var(--muted); }
+
+/* Angaben aus einem Inserat */
+.import { border: 1px dashed var(--line); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+.import[open] { gap: 8px; }
+.import summary { cursor: pointer; font-weight: 600; font-size: 0.95rem; }
+.import > * + * { margin-top: 6px; }
+.import input, .import textarea { background: var(--surface); }
+.import textarea { resize: vertical; min-height: 72px; font-size: 0.9rem; }
+.import-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.import-result { border-radius: 8px; padding: 8px 10px; font-size: 0.9rem; display: grid; gap: 4px; }
+.import-result p { margin: 0; }
+.import-result.ok { background: var(--accent-soft); }
+.import-result.warn { background: var(--warn-soft); }
+.import-result .miss { color: var(--bad); }
+.import-result .note::before { content: "⚠ "; }
+.import-result .muted { color: var(--muted); }
+input.from-ad { border-color: var(--good); box-shadow: inset 3px 0 0 var(--good); }
+.ad-link { color: var(--accent); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.ad-link:hover { text-decoration: underline; }
+.meta.extras span + span::before { content: "·"; margin-right: 8px; }
+.meta.zusatz { color: var(--mid); }
+.prop-edit .url { grid-column: 1 / -1; }
+.prop-main .ad-link { font-size: 0.88rem; margin-right: 10px; }

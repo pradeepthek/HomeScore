@@ -204,9 +204,9 @@
   }
 
   // ---------- Datenabruf ----------
-  async function searchLocations(text) {
+  async function searchLocations(text, origins = "address,gg25") {
     const u = new URL(API.search);
-    u.search = new URLSearchParams({ searchText: text, type: "locations", origins: "address,gg25", limit: "8", sr: "4326" });
+    u.search = new URLSearchParams({ searchText: text, type: "locations", origins, limit: "8", sr: "4326" });
     const j = await getJSON(u, {}, 10000);
     return (j.results || []).map((r) => ({
       label: stripTags(r.attrs.label),
@@ -485,7 +485,7 @@
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       schoolV: 2,
       label: place.label,
-      approx: place.origin === "gg25",
+      approx: place.origin !== "address",
       lat: place.lat, lon: place.lon,
       v: {}, meta: {}, edited: {},
     };
@@ -716,7 +716,9 @@
       p.zimmer ? T("{n} Zimmer", { n: fmt(p.zimmer, p.zimmer % 1 ? 1 : 0) }) : T("Zimmer") + " –",
       p.flaeche ? p.flaeche + " m²" : "m² –",
     ];
-    return `<div class="facts">${parts.map((x) => `<span>${esc(x)}</span>`).join("")}</div>`;
+    // Nur zur Information, fliesst nicht in den Score ein
+    const m2 = p.kaufpreis && p.flaeche ? `<span class="m2" title="${esc(T("Preis pro m² (nur zur Information, nicht im Score)"))}">CHF ${chf(p.kaufpreis / p.flaeche)}/m²</span>` : "";
+    return `<div class="facts">${parts.map((x) => `<span>${esc(x)}</span>`).join("")}${m2}</div>`;
   }
   function scoreColor(sc) {
     if (sc == null) return "var(--line)";
@@ -786,10 +788,7 @@
           <td>${(() => { const u = mapsLink(r.c, p); return u ? `<a class="maplink" href="${esc(u)}" target="_blank" rel="noopener" title="${esc(T("In Google Maps öffnen"))}">${esc(r.c.label)}<span aria-hidden="true"> ↗</span></a>` : esc(r.c.label); })()}${edited}${detail}</td>
           <td class="val">${valueCell}</td>
           <td><div class="bar" title="${r.sc == null ? T("kein Score") : T("{v} von 10", { v: fmt(r.sc) })}"><i style="--w:${pct}%;--c:${scoreColor(r.sc)}"></i><em>${r.sc == null ? "–" : fmt(r.sc)}</em></div></td>
-          <td class="w">${r.w}</td>
-          <td class="contrib">${r.contrib != null
-            ? `<span class="cnum" title="${esc(T("{p} Punkte × Gewicht {w} = {r}", { p: fmt(r.sc), w: r.w, r: fmt(r.sc * r.w) }))}">+${fmt(r.contrib)}</span>`
-            : `<span class="muted">${r.w === 0 ? T("nicht gewichtet") : T("kein Wert")}</span>`}</td>
+          <td class="w lvl-${r.w}" title="${esc(T("Gewicht {w}", { w: r.w }))}">${esc(weightText(r.w))}</td>
         </tr>`;
       }).join("");
       const open = openCards.has(p.id);
@@ -799,7 +798,9 @@
           <div class="card-title">
             <h3>${esc(p.label)}</h3>
             ${factsHtml(p)}
-            <div class="meta">${p.gemeinde ? `<span>${esc(p.gemeinde)} (${esc(p.kanton)})</span>` : ""}${tags.join(" ")}</div>
+            <div class="meta">${p.gemeinde ? `<span>${esc(p.gemeinde)} (${esc(p.kanton)})</span>` : ""}${tags.join(" ")}${p.url ? `<a class="ad-link" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(T("Inserat"))}${p.portal ? " " + esc(p.portal) : ""}<span aria-hidden="true"> ↗</span></a>` : ""}</div>
+            ${(() => { const x = extrasText(p.extras); return x.length ? `<div class="meta extras">${x.map((t) => `<span>${esc(t)}</span>`).join("")}</div>` : ""; })()}
+            ${p.zusatz && p.zusatz.length ? `<div class="meta zusatz">${esc(T("Zusatzkosten im Inserat: {list}", { list: zusatzText(p.zusatz) }))}</div>` : ""}
           </div>
           ${(() => {
             const miss = e.rows.filter((r) => r.w > 0 && (r.v == null || isNaN(r.v))).map((r) => plain(r.c.travel ? r.c.name : r.c.label));
@@ -810,11 +811,11 @@
         </div>
         <div class="card-body" id="body-${p.id}"${open ? "" : " hidden"}>
         <div class="table-scroll"><table class="breakdown">
-          <thead><tr><th>${T("Kriterium")}</th><th>${T("Wert")}</th><th title="${esc(T("Punkte von 0 bis 10"))}">${T("Punkte")}</th><th>${T("Gew.")}</th><th title="${esc(T("Anteil am Gesamtscore"))}">${T("Beitrag")}</th></tr></thead>
+          <thead><tr><th>${T("Kriterium")}</th><th>${T("Wert")}</th><th title="${esc(T("Punkte von 0 bis 10"))}">${T("Punkte")}</th><th>${T("Gewichtung")}</th></tr></thead>
           <tbody>${rows}</tbody>
-          <tfoot><tr><td colspan="5" class="calc">${e.wsum
+          <tfoot><tr><td colspan="4" class="calc">${e.wsum
             ? `<strong>${T("Gesamtscore")}</strong> = ${T("Σ (Punkte × Gewicht) ÷ Σ Gewichte × 10")} = ${fmt(e.sum)} ÷ ${e.wsum} × 10 = ${fmt(e.exact)} ≈ <strong>${e.total}</strong>
-               <span class="muted">${T("Die Spalte «Beitrag» zeigt denselben Wert aufgeteilt nach Kriterium (Punkte × Gewicht ÷ {w} × 10). Kriterien ohne Wert oder mit Gewicht 0 zählen nicht mit.", { w: e.wsum })}</span>`
+               <span class="muted">${T("Gewicht als Zahl: {list}. Kriterien ohne Wert oder mit «{egal}» zählen nicht mit.", { list: [0, 1, 2, 3, 4, 5].map((n) => weightText(n) + " = " + n).join(" · "), egal: weightText(0) })}</span>`
             : T("Noch kein Score: Es fehlen Werte oder alle Gewichte sind 0.")}</td></tr></tfoot>
         </table></div>
         <div class="card-foot">${missingPlaces(p).length ? `<button type="button" class="btn-ghost" data-retry="${p.id}">${T("Fehlende Orte erneut suchen")}</button>` : ""}<button type="button" class="btn-ghost" data-remove="${p.id}">${T("Entfernen")}</button></div>
@@ -854,10 +855,10 @@
       }
       const cell = (r, p, side) => `<td class="cmp-cell${better === side ? " better" : ""}${r.fail ? " fail" : ""}">
           <span class="cmp-val">${showValue(ra.c, p)}</span>
-          <span class="cmp-pts">${r.sc == null ? T("kein Score") : T("{p} Punkte", { p: fmt(r.sc) })}${r.contrib != null ? " · " + T("Beitrag") + " +" + fmt(r.contrib) : ""}${r.fail ? " · " + T("Muss-Kriterium nicht erfüllt") : ""}</span>
+          <span class="cmp-pts">${r.sc == null ? T("kein Score") : T("{p} Punkte", { p: fmt(r.sc) })}${r.fail ? " · " + T("Muss-Kriterium nicht erfüllt") : ""}</span>
         </td>`;
       return `<tr class="${ra.w === 0 ? "off" : ""}">
-        <th scope="row">${esc(plain(ra.c.label))}<span class="muted">${T("Gewicht {w}", { w: ra.w })}${ra.w === 0 ? " · " + T("zählt nicht") : ""}</span></th>
+        <th scope="row">${esc(plain(ra.c.label))}<span class="muted">${T("Gewichtung")}: ${esc(weightText(ra.w))}${ra.w === 0 ? " · " + T("zählt nicht") : ""}</span></th>
         ${cell(ra, a, "a")}${cell(rb, b, "b")}
       </tr>`;
     }).join("");
@@ -1045,7 +1046,8 @@
             <label><span>${T("Kaufpreis (CHF)")}</span><input type="text" inputmode="numeric" class="money" id="pk-${p.id}" data-edit="kaufpreis" data-prop="${p.id}" value="${moneyText(p.kaufpreis)}"></label>
             <label><span>${T("Zimmer")}</span><input type="text" inputmode="decimal" id="pz-${p.id}" data-edit="zimmer" data-prop="${p.id}" value="${p.zimmer ?? ""}"></label>
             <label><span>${T("Wohnfläche (m²)")}</span><input type="text" inputmode="numeric" id="pf-${p.id}" data-edit="flaeche" data-prop="${p.id}" value="${p.flaeche ?? ""}"></label>
-          </div>${status}</div>
+            <label class="url"><span>${T("Link zum Inserat (optional)")}</span><input type="url" inputmode="url" id="pu-${p.id}" data-edit="url" data-prop="${p.id}" value="${esc(p.url || "")}" placeholder="https://…"></label>
+          </div>${p.url ? `<a class="ad-link" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(T("Inserat öffnen"))}<span aria-hidden="true"> ↗</span></a> ` : ""}${status}</div>
         <button type="button" class="btn-x" data-remove="${p.id}" aria-label="${esc(T("{obj} entfernen", { obj: p.label }))}" title="${esc(T("Entfernen"))}">×</button>
       </li>`;
     }).join("");
@@ -1056,6 +1058,7 @@
     if (!f) return;
     const p = state.props.find((x) => x.id === t.dataset.prop);
     if (!p) return;
+    if (f === "url") { const u = cleanUrl(t.value); p.url = u || null; p.portal = u ? window.HS_portalOf(u) : null; save(); renderResults(); return; }
     const n = f === "kaufpreis" ? moneyVal(t) : decimalVal(t);
     p[f] = n != null && n > 0 ? n : null;
     save(); renderResults();
@@ -1268,6 +1271,86 @@
     li.className = status || "";
   }
 
+  // ---------- Angaben aus einem Inserat ----------
+  let lastImport = null;
+  function cleanUrl(v) {
+    const t = String(v || "").trim();
+    if (!t) return "";
+    try { const u = new URL(/^https?:\/\//i.test(t) ? t : "https://" + t); return /^https?:$/.test(u.protocol) && u.hostname.includes(".") ? u.href : ""; } catch (e) { return ""; }
+  }
+  function clearImport() {
+    lastImport = null;
+    $("#inserat-url").value = ""; $("#inserat-text").value = "";
+    $("#import-result").hidden = true; $("#import-result").innerHTML = "";
+    ["#q", "#kaufpreis", "#zimmer", "#flaeche"].forEach((sel) => $(sel).classList.remove("from-ad"));
+  }
+  function setField(sel, value) {
+    const el = $(sel);
+    el.value = value; el.classList.add("from-ad");
+  }
+  function extrasText(ex) {
+    if (!ex) return [];
+    const out = [];
+    if (ex.objektart) out.push(ex.objektart);
+    if (ex.baujahr) out.push(T("Baujahr {y}", { y: ex.baujahr }) + (ex.renoviert ? ", " + T("renoviert {y}", { y: ex.renoviert }) : ""));
+    else if (ex.renoviert) out.push(T("renoviert {y}", { y: ex.renoviert }));
+    if (ex.geschoss) out.push(ex.geschoss);
+    if (ex.nutzflaeche) out.push(T("Nutzfläche {n} m²", { n: ex.nutzflaeche }));
+    if (ex.grundstueck) out.push(T("Grundstück {n} m²", { n: chf(ex.grundstueck) }));
+    if (ex.nebenkosten) out.push(T("Nebenkosten CHF {n}", { n: chf(ex.nebenkosten) }));
+    return out;
+  }
+  function zusatzText(z) {
+    return (z || []).map((x) => `${x.was} CHF ${chf(x.chf)}`).join(", ");
+  }
+  function runImport() {
+    const box = $("#import-result");
+    const text = $("#inserat-text").value;
+    const urlField = $("#inserat-url");
+    if (!text.trim()) {
+      box.className = "import-result warn";
+      box.innerHTML = `<p>${esc(T("Bitte zuerst den Text des Inserats einfügen."))}</p>`;
+      box.hidden = false; return;
+    }
+    const r = window.HS_parseListing(text, cleanUrl(urlField.value));
+    if (r.onlyUrl) {
+      urlField.value = text.trim();
+      $("#inserat-text").value = "";
+      box.className = "import-result warn";
+      box.innerHTML = `<p><strong>${esc(T("Nur ein Link eingefügt."))}</strong> ${esc(T("Die Inseratsseite kann von HomeScore nicht direkt geladen werden (Sperre der Portale). Bitte das Inserat öffnen, mit Ctrl+A alles markieren, mit Ctrl+C kopieren und den Text hier einfügen. Der Link wurde ins Feld «Link zum Inserat» übernommen."))}</p>`;
+      box.hidden = false; return;
+    }
+    lastImport = r;
+    const found = [], missing = [], notes = [];
+    if (r.address) {
+      setField("#q", r.address.text); chosen = null;
+      found.push(T("Adresse") + ": " + r.address.text);
+      if (!r.address.street) notes.push(T("Nur Ort gefunden, keine Strasse. Distanzen werden ab dem Gemeindezentrum gemessen. Strasse und Hausnummer, falls bekannt, im Adressfeld ergänzen."));
+      if (r.address.unsicher) notes.push(T("Die gefundene Adresse steht neben Kontaktangaben und könnte die Adresse des Anbieters sein. Bitte prüfen."));
+    } else missing.push(T("Adresse"));
+    if (r.kaufpreis) { setField("#kaufpreis", moneyText(r.kaufpreis)); found.push(T("Kaufpreis") + ": CHF " + chf(r.kaufpreis)); }
+    else { missing.push(T("Kaufpreis")); if (r.preisAufAnfrage) notes.push(T("Preis auf Anfrage: bitte Kaufpreis von Hand eintragen, sobald bekannt.")); }
+    if (r.zimmer) { setField("#zimmer", String(r.zimmer)); found.push(T("Zimmer") + ": " + fmt(r.zimmer, r.zimmer % 1 ? 1 : 0)); } else missing.push(T("Zimmer"));
+    if (r.flaeche) { setField("#flaeche", String(r.flaeche)); found.push(T("Wohnfläche") + ": " + r.flaeche + " m²"); if (r.flaecheAusTitel) notes.push(T("Wohnfläche aus dem Titel des Inserats übernommen. Bitte prüfen.")); }
+    else missing.push(T("Wohnfläche"));
+    if (r.zusatz.length) notes.push(T("Zusatzkosten im Text erwähnt: {list}. Prüfen, ob sie im Kaufpreis enthalten sind.", { list: zusatzText(r.zusatz) }));
+    const extra = extrasText(r.extras);
+    const ok = missing.length === 0;
+    box.className = "import-result " + (ok ? "ok" : "warn");
+    box.innerHTML =
+      (found.length ? `<p><strong>${esc(T("Übernommen"))}${r.portal ? " (" + esc(r.portal) + ")" : ""}:</strong> ${found.map(esc).join(" · ")}</p>` : "") +
+      (missing.length ? `<p class="miss"><strong>${esc(T("Nicht gefunden"))}:</strong> ${missing.map(esc).join(", ")}. ${esc(found.length ? T("Bitte von Hand eintragen.") : T("Keine Angaben erkannt. Wurde die ganze Seite kopiert (Ctrl+A, dann Ctrl+C)?"))}</p>` : "") +
+      notes.map((n) => `<p class="note">${esc(n)}</p>`).join("") +
+      (extra.length ? `<p class="muted">${esc(T("Weitere Angaben"))}: ${extra.map(esc).join(" · ")}</p>` : "") +
+      `<p class="muted">${esc(T("Werte prüfen, dann «{btn}» klicken.", { btn: T("Daten abrufen und hinzufügen") }))}</p>`;
+    box.hidden = false;
+  }
+  $("#btn-import").addEventListener("click", runImport);
+  $("#btn-import-clear").addEventListener("click", () => { clearImport(); $("#inserat-text").focus(); });
+  $("#inserat-text").addEventListener("paste", () => setTimeout(runImport, 0));
+  $("#inserat-text").addEventListener("input", (ev) => { if (!ev.target.value.trim()) { lastImport = null; $("#import-result").hidden = true; } });
+  ["#q", "#kaufpreis", "#zimmer", "#flaeche"].forEach((sel) => $(sel).addEventListener("input", () => $(sel).classList.remove("from-ad")));
+
   $("#lookup-form").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const err = $("#form-error");
@@ -1280,7 +1363,11 @@
       if (!place) {
         const text = q.value.trim();
         if (!text) { err.textContent = T("Bitte eine Adresse oder Gemeinde eingeben."); err.hidden = false; return; }
-        const list = await searchLocations(text);
+        let list = await searchLocations(text);
+        // Aus einem Inserat oft nur "PLZ Ort": zuerst den Ort als Gemeinde, dann die Postleitzahl versuchen
+        const po = text.match(/^(?:CH-)?(\d{4})\s+(.+)$/);
+        if (!list.length && po) list = await searchLocations(po[2]);
+        if (!list.length && po) list = await searchLocations(po[1], "zipcode");
         if (!list.length) { err.textContent = T("Keine Adresse oder Gemeinde gefunden. Bitte Schreibweise prüfen, z.B. «Bahnhofstrasse 10, 8400 Winterthur»."); err.hidden = false; return; }
         place = list[0];
       }
@@ -1290,6 +1377,9 @@
     }
     const pos = (n) => (n != null && n > 0 ? n : null);
     const facts = { kaufpreis: pos(moneyVal($("#kaufpreis"))), zimmer: pos(decimalVal($("#zimmer"))), flaeche: pos(decimalVal($("#flaeche"))) };
+    const url = cleanUrl($("#inserat-url").value);
+    if (url) { facts.url = url; facts.portal = window.HS_portalOf(url); }
+    if (lastImport) { facts.extras = lastImport.extras; facts.zusatz = lastImport.zusatz; }
 
     btn.disabled = true; btn.textContent = T("Daten werden abgerufen …");
     $("#progress").innerHTML = "";
@@ -1298,6 +1388,7 @@
       state.props.push(p);
       save(); renderResults();
       q.value = ""; $("#kaufpreis").value = ""; $("#zimmer").value = ""; $("#flaeche").value = ""; chosen = null;
+      clearImport();
       const ok = $("#form-ok");
       ok.textContent = T("«{name}» hinzugefügt. Fügen Sie weitere Objekte hinzu oder gehen Sie weiter zu Schritt 2.", { name: p.label });
       ok.hidden = false;

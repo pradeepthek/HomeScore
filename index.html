@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
-<link rel="stylesheet" href="css/style.css?v=2026-10-24g">
+<link rel="stylesheet" href="css/style.css?v=2026-11-08a">
 </head>
 <body>
 <header class="masthead">
@@ -42,6 +42,19 @@
   <section class="panel" aria-labelledby="h-objekt">
     <h2 id="h-objekt" data-i18n="Objekt prüfen">Objekt prüfen</h2>
     <form id="lookup-form" autocomplete="off" novalidate>
+      <details class="import" id="import" open>
+        <summary data-i18n="Angaben aus einem Inserat übernehmen">Angaben aus einem Inserat übernehmen</summary>
+        <p class="hint" data-i18n="Inserat öffnen (z.B. Homegate, ImmoScout24, Comparis, Newhome), ganze Seite markieren (Ctrl+A, Mac: Cmd+A), kopieren (Ctrl+C) und hier einfügen. Adresse, Kaufpreis, Zimmer und Wohnfläche werden ausgefüllt.">Inserat öffnen (z.B. Homegate, ImmoScout24, Comparis, Newhome), ganze Seite markieren (Ctrl+A, Mac: Cmd+A), kopieren (Ctrl+C) und hier einfügen. Adresse, Kaufpreis, Zimmer und Wohnfläche werden ausgefüllt.</p>
+        <label for="inserat-url" class="field-label" data-i18n="Link zum Inserat (optional)">Link zum Inserat (optional)</label>
+        <input id="inserat-url" type="url" inputmode="url" placeholder="https://…">
+        <label for="inserat-text" class="field-label" data-i18n="Text des Inserats">Text des Inserats</label>
+        <textarea id="inserat-text" rows="3" data-i18n-ph="Hier den kopierten Seitentext einfügen" placeholder="Hier den kopierten Seitentext einfügen"></textarea>
+        <div class="import-actions">
+          <button type="button" id="btn-import" class="btn-ghost" data-i18n="Angaben übernehmen">Angaben übernehmen</button>
+          <button type="button" id="btn-import-clear" class="btn-ghost" data-i18n="Leeren">Leeren</button>
+        </div>
+        <div id="import-result" class="import-result" role="status" hidden></div>
+      </details>
       <label for="q" class="field-label" data-i18n="Adresse oder Gemeinde">Adresse oder Gemeinde</label>
       <div class="search">
         <input id="q" type="text" data-i18n-ph="z.B. Bahnhofstrasse 10, 8400 Winterthur" placeholder="z.B. Bahnhofstrasse 10, 8400 Winterthur" aria-autocomplete="list" aria-controls="suggest" required>
@@ -132,7 +145,8 @@
 
 <script src="data/steuerfuesse.js?v=2026"></script>
 <script src="data/einkaufszentren.js?v=2026-10-24c"></script>
-<script src="js/i18n.js?v=2026-10-24g"></script>
-<script src="js/app.js?v=2026-10-24g"></script>
+<script src="js/i18n.js?v=2026-11-08a"></script>
+<script src="js/inserat.js?v=2026-11-08a"></script>
+<script src="js/app.js?v=2026-11-08a"></script>
 </body>
 </html>
