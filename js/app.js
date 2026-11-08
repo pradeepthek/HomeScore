@@ -1272,15 +1272,15 @@
   }
 
   // ---------- Angaben aus einem Inserat ----------
-  let lastImport = null;
+  let lastImport = null, importUrl = "";
   function cleanUrl(v) {
     const t = String(v || "").trim();
     if (!t) return "";
     try { const u = new URL(/^https?:\/\//i.test(t) ? t : "https://" + t); return /^https?:$/.test(u.protocol) && u.hostname.includes(".") ? u.href : ""; } catch (e) { return ""; }
   }
   function clearImport() {
-    lastImport = null;
-    $("#inserat-url").value = ""; $("#inserat-text").value = "";
+    lastImport = null; importUrl = "";
+    $("#inserat-text").value = "";
     $("#import-result").hidden = true; $("#import-result").innerHTML = "";
     ["#q", "#kaufpreis", "#zimmer", "#flaeche"].forEach((sel) => $(sel).classList.remove("from-ad"));
   }
@@ -1306,20 +1306,23 @@
   function runImport() {
     const box = $("#import-result");
     const text = $("#inserat-text").value;
-    const urlField = $("#inserat-url");
     if (!text.trim()) {
       box.className = "import-result warn";
       box.innerHTML = `<p>${esc(T("Bitte zuerst den Text des Inserats einfügen."))}</p>`;
       box.hidden = false; return;
     }
-    const r = window.HS_parseListing(text, cleanUrl(urlField.value));
+    const r = window.HS_parseListing(text, "");
     if (r.onlyUrl) {
-      urlField.value = text.trim();
-      $("#inserat-text").value = "";
+      // Nur ein Link: wird beim Objekt gespeichert, Werte bitte von Hand eintragen
+      lastImport = null;
+      importUrl = cleanUrl(text);
       box.className = "import-result warn";
-      box.innerHTML = `<p><strong>${esc(T("Nur ein Link eingefügt."))}</strong> ${esc(T("Die Inseratsseite kann von HomeScore nicht direkt geladen werden (Sperre der Portale). Bitte das Inserat öffnen, mit Ctrl+A alles markieren, mit Ctrl+C kopieren und den Text hier einfügen. Der Link wurde ins Feld «Link zum Inserat» übernommen."))}</p>`;
+      box.innerHTML = importUrl
+        ? `<p><strong>${esc(T("Link gespeichert"))}${r.portal ? " (" + esc(r.portal) + ")" : ""}.</strong> ${esc(T("Aus einem Link kann HomeScore keine Angaben lesen (Sperre der Portale). Adresse, Kaufpreis, Zimmer und Wohnfläche bitte von Hand eintragen, oder statt des Links den ganzen Seitentext einfügen."))}</p>`
+        : `<p class="miss">${esc(T("Ungültiger Link."))}</p>`;
       box.hidden = false; return;
     }
+    importUrl = "";
     lastImport = r;
     const found = [], missing = [], notes = [];
     if (r.address) {
@@ -1348,7 +1351,7 @@
   $("#btn-import").addEventListener("click", runImport);
   $("#btn-import-clear").addEventListener("click", () => { clearImport(); $("#inserat-text").focus(); });
   $("#inserat-text").addEventListener("paste", () => setTimeout(runImport, 0));
-  $("#inserat-text").addEventListener("input", (ev) => { if (!ev.target.value.trim()) { lastImport = null; $("#import-result").hidden = true; } });
+  $("#inserat-text").addEventListener("input", (ev) => { if (!ev.target.value.trim()) { lastImport = null; importUrl = ""; $("#import-result").hidden = true; } });
   ["#q", "#kaufpreis", "#zimmer", "#flaeche"].forEach((sel) => $(sel).addEventListener("input", () => $(sel).classList.remove("from-ad")));
 
   $("#lookup-form").addEventListener("submit", async (ev) => {
@@ -1377,8 +1380,8 @@
     }
     const pos = (n) => (n != null && n > 0 ? n : null);
     const facts = { kaufpreis: pos(moneyVal($("#kaufpreis"))), zimmer: pos(decimalVal($("#zimmer"))), flaeche: pos(decimalVal($("#flaeche"))) };
-    const url = cleanUrl($("#inserat-url").value);
-    if (url) { facts.url = url; facts.portal = window.HS_portalOf(url); }
+    if (!importUrl && !lastImport) { const t = $("#inserat-text").value.trim(); if (/^https?:\/\/\S+$/i.test(t)) importUrl = cleanUrl(t); }
+    if (importUrl) { facts.url = importUrl; facts.portal = window.HS_portalOf(importUrl); }
     if (lastImport) { facts.extras = lastImport.extras; facts.zusatz = lastImport.zusatz; }
 
     btn.disabled = true; btn.textContent = T("Daten werden abgerufen …");
