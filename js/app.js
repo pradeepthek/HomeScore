@@ -845,7 +845,7 @@
         <div class="card-head" data-head="${p.id}">
           <label class="select" title="${esc(T("Auswählen"))}"><input type="checkbox" id="sel-${p.id}" data-select="${p.id}"${selected.has(p.id) ? " checked" : ""} aria-label="${esc(T("{obj} auswählen", { obj: p.label }))}"><span class="rank">#${i + 1}</span></label>
           <div class="card-title">
-            <h3>${esc(p.label)}</h3>
+            <div class="prop-head"><h3>${esc(p.label)}</h3>${delButton(p)}</div>
             ${factsHtml(p)}
             <div class="meta">${p.gemeinde ? `<span>${esc(p.gemeinde)} (${esc(p.kanton)})</span>` : ""}${tags.join(" ")}</div>
             ${(() => { const x = extrasText(p.extras); return x.length ? `<div class="meta extras">${x.map((t) => `<span>${esc(t)}</span>`).join("")}</div>` : ""; })()}
@@ -1058,6 +1058,10 @@
     undo = null; clearTimeout(undoTimer);
     save(); renderResults();
   }
+  // Roter Knopf zum Entfernen eines einzelnen Objekts (Objektliste und Rangliste)
+  function delButton(p) {
+    return `<button type="button" class="btn-del" data-remove="${p.id}" aria-label="${esc(T("{obj} entfernen", { obj: p.label }))}"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>${T("Entfernen")}</button>`;
+  }
   function removeProps(ids) {
     const items = [];
     state.props.forEach((p, idx) => { if (ids.has(p.id)) items.push({ p, idx }); });
@@ -1106,7 +1110,7 @@
         ? `<span class="prop-status ok">✓ ${T("Daten vollständig")}</span>`
         : `<span class="prop-status miss">${miss === 1 ? T("1 Wert fehlt") : T("{n} Werte fehlen", { n: miss })}</span>`;
       return `<li class="prop-item">
-        <div class="prop-main"><div class="prop-head"><strong>${esc(p.label)}</strong><button type="button" class="btn-del" data-remove="${p.id}" aria-label="${esc(T("{obj} entfernen", { obj: p.label }))}"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>${T("Entfernen")}</button></div>
+        <div class="prop-main"><div class="prop-head"><strong>${esc(p.label)}</strong>${delButton(p)}</div>
           <div class="prop-edit">
             <label><span>${T("Kaufpreis (CHF)")}</span><input type="text" inputmode="numeric" class="money" id="pk-${p.id}" data-edit="kaufpreis" data-prop="${p.id}" value="${moneyText(p.kaufpreis)}"></label>
             <label><span>${T("Zimmer")}</span><input type="text" inputmode="decimal" id="pz-${p.id}" data-edit="zimmer" data-prop="${p.id}" value="${p.zimmer ?? ""}"></label>
@@ -1177,6 +1181,8 @@
   });
   // (Änderungen werden schon beim Tippen übernommen, siehe "input" oben)
   $("#results").addEventListener("click", async (ev) => {
+    const del = ev.target.closest("[data-remove]");
+    if (del) { removeProps(new Set([del.dataset.remove])); return; }
     const head = ev.target.closest("[data-head]");
     if (head && !ev.target.closest("a, .select")) { toggleCard(head.dataset.head); return; }
     const retry = ev.target.dataset && ev.target.dataset.retry;

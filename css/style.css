@@ -483,3 +483,5 @@ input.from-ad { border-color: var(--good); box-shadow: inset 3px 0 0 var(--good)
 .btn-del:hover { filter: brightness(1.1); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn-del { color: #1a0d0a; } }
 :root[data-theme="dark"] .btn-del { color: #1a0d0a; }
+.prop-head { flex-wrap: wrap; }
+.prop-head > h3, .prop-head > strong { flex: 1 1 12rem; min-width: 0; }
