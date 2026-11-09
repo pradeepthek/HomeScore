@@ -485,3 +485,5 @@ input.from-ad { border-color: var(--good); box-shadow: inset 3px 0 0 var(--good)
 :root[data-theme="dark"] .btn-del { color: #1a0d0a; }
 .prop-head { flex-wrap: wrap; }
 .prop-head > h3, .prop-head > strong { flex: 1 1 12rem; min-width: 0; }
+.card-left { display: flex; flex-direction: column; align-items: center; gap: 10px; align-self: start; }
+.btn-del.icon { padding: 0; width: 30px; height: 30px; justify-content: center; border-radius: 7px; }

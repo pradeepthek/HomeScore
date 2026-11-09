@@ -843,9 +843,9 @@
       const open = openCards.has(p.id);
       return `<article class="card${e.fails.length ? " ko" : ""}${open ? " open" : ""}">
         <div class="card-head" data-head="${p.id}">
-          <label class="select" title="${esc(T("Auswählen"))}"><input type="checkbox" id="sel-${p.id}" data-select="${p.id}"${selected.has(p.id) ? " checked" : ""} aria-label="${esc(T("{obj} auswählen", { obj: p.label }))}"><span class="rank">#${i + 1}</span></label>
+          <div class="card-left"><label class="select" title="${esc(T("Auswählen"))}"><input type="checkbox" id="sel-${p.id}" data-select="${p.id}"${selected.has(p.id) ? " checked" : ""} aria-label="${esc(T("{obj} auswählen", { obj: p.label }))}"><span class="rank">#${i + 1}</span></label>${delIcon(p)}</div>
           <div class="card-title">
-            <div class="prop-head"><h3>${esc(p.label)}</h3>${delButton(p)}</div>
+            <h3>${esc(p.label)}</h3>
             ${factsHtml(p)}
             <div class="meta">${p.gemeinde ? `<span>${esc(p.gemeinde)} (${esc(p.kanton)})</span>` : ""}${tags.join(" ")}</div>
             ${(() => { const x = extrasText(p.extras); return x.length ? `<div class="meta extras">${x.map((t) => `<span>${esc(t)}</span>`).join("")}</div>` : ""; })()}
@@ -1061,6 +1061,10 @@
   // Roter Knopf zum Entfernen eines einzelnen Objekts (Objektliste und Rangliste)
   function delButton(p) {
     return `<button type="button" class="btn-del" data-remove="${p.id}" aria-label="${esc(T("{obj} entfernen", { obj: p.label }))}"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>${T("Entfernen")}</button>`;
+  }
+  // Nur Symbol, unter der Auswahl links in der Rangliste
+  function delIcon(p) {
+    return `<button type="button" class="btn-del icon" data-remove="${p.id}" aria-label="${esc(T("{obj} entfernen", { obj: p.label }))}" title="${esc(T("Entfernen"))}"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   }
   function removeProps(ids) {
     const items = [];
