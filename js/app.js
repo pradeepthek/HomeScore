@@ -151,6 +151,12 @@
         if (nm && NOT_ACUTE_HOSPITAL.test(nm) && !(p.edited && p.edited.spital)) { delete p.v.spital; delete p.meta.spital; if (p.target) delete p.target.spital; if (p.notFound) delete p.notFound.spital; }
         p.hospitalV = 2;
       });
+      // ältere Objekte: Autobahnanschluss wurde bis auf die Autobahn gemessen -> neu berechnen
+      state.props.forEach((p) => {
+        if (p.exitV === 2) return;
+        if (!(p.edited && p.edited.autobahn)) { if (p.v) delete p.v.autobahn; if (p.meta) delete p.meta.autobahn; if (p.target) delete p.target.autobahn; if (p.notFound) delete p.notFound.autobahn; }
+        p.exitV = 2;
+      });
       // ältere Objekte: Reisezeit war nur Zug
       state.props.forEach((p) => DESTS.forEach((d) => {
         const k = "dest_" + d.id;
@@ -365,6 +371,25 @@
     return { km: r.distance / 1000, min: r.duration / 60 };
   }
 
+  // Autobahnanschluss: Der Anschlusspunkt liegt in OpenStreetMap auf der Autobahn selbst. Eine Route genau dorthin
+  // fährt oft zuerst in die falsche Richtung auf die Autobahn und wendet bei der nächsten Ausfahrt (z.B. 21 statt 2 km).
+  // Darum zählt die Strecke nur bis zur ersten Auffahrt (OSRM-Manöver «on ramp» bzw. Strassenklasse «motorway»).
+  async function routeToMotorway(from, to) {
+    const j = await getJSON(`${API.routeCar}${from.lon},${from.lat};${to.lon},${to.lat}?overview=false&steps=true`, {}, 15000);
+    const r = j.routes && j.routes[0];
+    if (!r) throw new Error("keine Route");
+    let km = 0, min = 0;
+    for (const leg of r.legs || []) {
+      for (const st of leg.steps || []) {
+        const m = st.maneuver || {};
+        const onMotorway = m.type === "on ramp" || ((st.intersections && st.intersections[0] && st.intersections[0].classes) || []).includes("motorway");
+        if (onMotorway && Array.isArray(m.location)) return { km, min, mode: "car", entry: { lat: m.location[1], lon: m.location[0] } };
+        km += st.distance / 1000; min += st.duration / 60;
+      }
+    }
+    return { km: r.distance / 1000, min: r.duration / 60, mode: "car" };
+  }
+
   // Bis 1 km zu Fuss, sonst Auto. Bei Fehlern Luftlinie.
   async function bestRoute(from, to, carOnly) {
     const air = haversineKm(from, to);
@@ -506,10 +531,13 @@
           b = await osmNearest(c.osm, from);
         }
         if (b) {
-          const r = await bestRoute(from, b.pos, c.carOnly);
+          let r;
+          if (c.osm === "exit") {
+            try { r = await routeToMotorway(from, b.pos); } catch (e) { r = await bestRoute(from, b.pos, true); }
+          } else r = await bestRoute(from, b.pos, c.carOnly);
           p.v[c.id] = Math.round(r.km * 100) / 100;
           p.meta[c.id] = { name: b.name, mode: r.mode, min: r.min };
-          p.target[c.id] = { lat: b.pos.lat, lon: b.pos.lon, walk: r.mode === "walk" };
+          p.target[c.id] = r.entry ? { lat: r.entry.lat, lon: r.entry.lon, walk: false } : { lat: b.pos.lat, lon: b.pos.lon, walk: r.mode === "walk" };
           delete p.edited[c.id];
           if (p.notFound) delete p.notFound[c.id];
         } else { delete p.meta[c.id]; (p.notFound = p.notFound || {})[c.id] = true; failed.push(name); }
@@ -528,7 +556,7 @@
   async function buildProperty(place, facts, onStep) {
     const p = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      schoolV: 2, hospitalV: 2, workV: 2,
+      schoolV: 2, hospitalV: 2, workV: 2, exitV: 2,
       label: place.label,
       approx: place.origin !== "address",
       lat: place.lat, lon: place.lon,
@@ -1489,6 +1517,10 @@
   // ältere Objekte: Arbeitsweg öV war Bahnhof bis Bahnhof -> einmal Haustür bis Arbeitsort neu berechnen
   (async () => {
     const ws = activeWork();
+    // Autobahnanschluss nach der neuen Messung (bis zur Auffahrt) neu suchen
+    const exitCrit = CRITERIA.filter((c) => c.id === "autobahn");
+    const redo = state.props.filter((p) => p.v && p.v.autobahn == null && !(p.edited && p.edited.autobahn) && !(p.notFound && p.notFound.autobahn));
+    if (redo.length) { await Promise.all(redo.map((p) => lookupPlaces(p, exitCrit).catch(() => {}))); save(); renderResults(); }
     const todo = state.props.filter((p) => p.workV !== 2);
     if (!todo.length) return;
     if (ws.length) await Promise.all(todo.map((p) => Promise.all(ws.map((w) => computeWork(p, w)))));

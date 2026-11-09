@@ -28,7 +28,7 @@ HomeScore/
 | Steuerfuss Gemeinde | tiefster im Kanton | Mitte | höchster im Kanton | ESTV |
 | Haltestelle öV (Bus, Tram, Zug) | ≤ 0.3 km | 0.6 km | ≥ 1.2 km | transport.opendata.ch (nächste Haltestelle jeder Art) |
 | Bahnhof | ≤ 0.5 km | 2 km | ≥ 5 km | transport.opendata.ch (Ersatz: OpenStreetMap) |
-| Autobahnanschluss | ≤ 2 km | 6 km | ≥ 15 km | OpenStreetMap |
+| Autobahnanschluss | ≤ 2 km | 6 km | ≥ 15 km | OpenStreetMap; Autoroute nur bis zur ersten Auffahrt (nicht bis zum Anschlusspunkt auf der Autobahn) |
 | Kindergarten | ≤ 0.5 km | 1.5 km | ≥ 3 km | OpenStreetMap |
 | Primarschule | ≤ 0.5 km | 1.5 km | ≥ 3 km | OpenStreetMap (nur Primarschulen: Schulstufe oder Name) |
 | Spital | ≤ 3 km | 8 km | ≥ 20 km | OpenStreetMap (amenity=hospital, nur Akutspitäler: ohne Psychiatrie, Reha, Pflege, Palliativ, Tierspital) |
