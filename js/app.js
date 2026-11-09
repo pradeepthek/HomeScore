@@ -135,6 +135,9 @@
         }
         if (p.v) delete p.v.preis;
       });
+      // Adresse mit Komma nach Strasse und Nummer, auch bei Arbeitsorten
+      state.props.forEach((p) => { p.label = addrComma(p.label); });
+      Object.values(state.settings.work || {}).forEach((w) => { if (w && w.label) w.label = addrComma(w.label); });
       // ältere Objekte: «Schule» war jede Schule, neu nur Primarschulen -> Wert neu suchen (von Hand eingetragene bleiben)
       state.props.forEach((p) => {
         if (p.schoolV === 2) return;
@@ -213,12 +216,16 @@
   }
 
   // ---------- Datenabruf ----------
+  // "Wilhalde 42 5504 Othmarsingen" -> "Wilhalde 42, 5504 Othmarsingen"
+  function addrComma(label) {
+    return String(label || "").replace(/^(.*\S)(?<!,)\s+(\d{4}\s+\S.*)$/, "$1, $2");
+  }
   async function searchLocations(text, origins = "address,gg25") {
     const u = new URL(API.search);
     u.search = new URLSearchParams({ searchText: text, type: "locations", origins, limit: "8", sr: "4326" });
     const j = await getJSON(u, {}, 10000);
     return (j.results || []).map((r) => ({
-      label: stripTags(r.attrs.label),
+      label: addrComma(stripTags(r.attrs.label)),
       origin: r.attrs.origin,
       lat: r.attrs.lat,
       lon: r.attrs.lon,

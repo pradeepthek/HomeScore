@@ -25,6 +25,15 @@
     nebenkosten: "nebenkosten|charges|spese accessorie|spese condominiali|additional costs|service charges",
   };
 
+  // Bezeichnung mit Grossbuchstaben, direkt gefolgt von ":" – davor wird getrennt. Gross-/Kleinschreibung zählt,
+  // damit "Kaufpreis:" nicht in "Kauf" + "preis:" zerfällt.
+  const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
+  const GLUED_LABELS = Object.values(LABELS).join("|").split("|")
+    .concat(["verfügbarkeit", "anzahl etagen", "anzahl wohnungen", "kubatur", "bezugstermin", "disponibilité", "disponibilità"])
+    .flatMap((x) => [cap(x), x.split(" ").map(cap).join(" ")])
+    .filter((x, i, arr) => arr.indexOf(x) === i).sort((a, b) => b.length - a.length).join("|");
+  const GLUED = new RegExp("(\\S)(?=(?:" + GLUED_LABELS + ")\\s*[:：])", "g");
+
   const PORTALS = [
     [/homegate\./i, "Homegate"], [/immoscout24\./i, "ImmoScout24"], [/comparis\./i, "Comparis"],
     [/newhome\./i, "Newhome"], [/immobilier\.ch/i, "immobilier.ch"], [/flatfox\./i, "Flatfox"],
@@ -67,7 +76,13 @@
 
   function parseListing(text, url) {
     const raw = String(text || "").replace(/\r/g, "");
-    const lines = raw.split("\n").map((l) => l.replace(/[  \t]+/g, " ").replace(/\s{2,}/g, " ").trim()).filter(Boolean);
+    let lines = raw.split("\n").map((l) => l.replace(/[  \t]+/g, " ").replace(/\s{2,}/g, " ").trim()).filter(Boolean);
+    // Zusammengeklebte Angaben trennen, z.B. "VereinbarungObjekttyp:Einfamilienhaus…Wohnfläche:132 m2Grundstücksfläche:…"
+    lines = lines.flatMap((l) => l.replace(GLUED, "$1\n").split("\n")).map((l) => l.trim()).filter(Boolean);
+    // Zahl und Einheit auf zwei Zeilen ("132" / "m2") wieder zusammenfügen
+    for (let i = lines.length - 2; i >= 0; i--) {
+      if (/^\d[\d'’.,]*$/.test(lines[i]) && /^(m2|m²|qm|m\s?2)$/i.test(lines[i + 1])) lines.splice(i, 2, lines[i] + " m²");
+    }
     const out = { portal: portalOf(url), address: null, kaufpreis: null, zimmer: null, flaeche: null, extras: {}, zusatz: [], preisAufAnfrage: false, onlyUrl: false };
 
     if (/^https?:\/\/\S+$/i.test(raw.trim())) { out.onlyUrl = true; out.portal = out.portal || portalOf(raw.trim()); return out; }
